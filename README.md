@@ -1,2 +1,2 @@
-# cil_article
-Replication of numerical experiments in the article
+# Replication of numerical experiments in the article
+CIL routines to replicate analyses in the article submitted to JASA
