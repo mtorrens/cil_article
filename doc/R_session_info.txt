@@ -1,0 +1,44 @@
+R version 4.0.2 (2020-06-22)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Mojave 10.14.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRblas.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
+
+locale:
+[1] ca_ES.UTF-8/ca_ES.UTF-8/ca_ES.UTF-8/C/ca_ES.UTF-8/ca_ES.UTF-8
+
+attached base packages:
+[1] compiler  parallel  stats     graphics  grDevices utils     datasets 
+[8] methods   base     
+
+other attached packages:
+ [1] ipumsr_0.4.5             plotly_4.9.2.1           ggplot2_3.3.2           
+ [4] regimes_0.5.14           HDconfounding_0.0.0.9000 statmod_1.4.34          
+ [7] BayesPen_1.2             SuppDists_1.1-9.5        lars_1.2                
+[10] BACprior_2.0             boot_1.3-25              leaps_3.1               
+[13] bacr_1.0.1               MCMCpack_1.4-9           hdm_0.3.1               
+[16] selectiveInference_1.2.5 MASS_7.3-51.6            adaptMCMC_1.3           
+[19] coda_0.19-3              survival_3.1-12          intervals_0.15.2        
+[22] glmnet_4.0-2             Matrix_1.2-18            mombf_3.0.2             
+[25] mgcv_1.8-31              nlme_3.1-148             ncvreg_3.12.0           
+[28] doMC_1.3.6               iterators_1.0.12         foreach_1.5.0           
+[31] mvtnorm_1.1-1           
+
+loaded via a namespace (and not attached):
+ [1] httr_1.4.2         magic_1.5-9        tidyr_1.1.2        refund_0.1-22     
+ [5] jsonlite_1.7.1     viridisLite_0.3.0  splines_4.0.2      RLRsim_3.1-6      
+ [9] Formula_1.2-3      pillar_1.4.6       lattice_0.20-41    quantreg_5.67     
+[13] glue_1.4.2         digest_0.6.25      minqa_1.2.4        colorspace_1.4-1  
+[17] htmltools_0.5.0    conquer_1.0.2      pkgconfig_2.0.3    SparseM_1.78      
+[21] haven_2.3.1        fda_5.1.5.1        purrr_0.3.4        scales_1.1.1      
+[25] grpreg_3.3.0       lme4_1.1-23        MatrixModels_0.4-1 tibble_3.0.3      
+[29] generics_0.0.2     ellipsis_0.3.1     withr_2.2.0        lazyeval_0.2.2    
+[33] magrittr_1.5       crayon_1.3.4       mclust_5.4.7       mcmc_0.9-7        
+[37] forcats_0.5.0      tools_4.0.2        data.table_1.13.0  hms_0.5.3         
+[41] lifecycle_0.2.0    matrixStats_0.56.0 gamm4_0.2-6        GIGrvg_0.5        
+[45] munsell_0.5.0      pbs_1.1            rlang_0.4.7        grid_4.0.2        
+[49] nloptr_1.2.2.2     htmlwidgets_1.5.1  gtable_0.3.0       codetools_0.2-16  
+[53] abind_1.4-5        R6_2.4.1           dplyr_1.0.2        zeallot_0.1.0     
+[57] shape_1.4.5        Rcpp_1.0.6         vctrs_0.3.4        tidyselect_1.1.0  
