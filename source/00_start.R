@@ -82,7 +82,7 @@ if (any(! req == TRUE)) {
 #regimes: available at https://github.com/AnderWilson/regimes
 
 #Specific functions
-source(paste(FCNDIR, 'functions_butler.R', sep = ''))
+source(paste(FCNDIR, 'functions_janitor.R', sep = ''))
 source(paste(FCNDIR, 'functions_gradients.R', sep = ''))
 source(paste(FCNDIR, 'functions_newmethod.R', sep = ''))
 source(paste(FCNDIR, 'support_bac.R', sep = ''))

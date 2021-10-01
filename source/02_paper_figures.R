@@ -5,25 +5,25 @@
 
 ################################################################################
 # SETUPS
-# (P: Pending; F: Finished; U: Unfinished; R: Running)
+# (P: Pending; D: Done; U: Unfinished; R: Running)
 ################################################################################
-# (F) 00: [ST]  n =  50; p+T =  25; a = 1; p_y = p_d = 6
+# (D) 00: [ST]  n =  50; p+T =  25; a = 1; p_y = p_d = 6
 file00 <- paste(DATDIR, 'psim_T_ST50x24.RData', sep = '')
-# (F) 01: [ST]  n = 100; p+T =  50; a = 1; p_y = p_d = 6
+# (D) 01: [ST]  n = 100; p+T =  50; a = 1; p_y = p_d = 6
 file01 <- paste(DATDIR, 'psim_T_ST100x49.RData', sep = '')
-# (F) 02: [ST]  n = 100; p+T =  50; a = 1/3; p_y = p_d = 6
+# (D) 02: [ST]  n = 100; p+T =  50; a = 1/3; p_y = p_d = 6
 file02 <- paste(DATDIR, 'psim_T_ST100x49a03.RData', sep = '')
-# (F) 03: [ST]  n = 100; p+T =  50; a = 0; p_y = p_d = 6
+# (D) 03: [ST]  n = 100; p+T =  50; a = 0; p_y = p_d = 6
 file03 <- paste(DATDIR, 'psim_T_ST100x49a0.RData', sep = '')
-# (F) 04: [ST]  n = 100; p+T = 100; a = 1; p_y = p_d = 6
+# (D) 04: [ST]  n = 100; p+T = 100; a = 1; p_y = p_d = 6
 file04 <- paste(DATDIR, 'psim_T_ST100x99.RData', sep = '')
-# (F) 05: [ST]  n = 100; p+T = 200; a = 1; p_y = p_d = 6
+# (D) 05: [ST]  n = 100; p+T = 200; a = 1; p_y = p_d = 6
 file05 <- paste(DATDIR, 'psim_T_ST100x199.RData', sep = '')
-# (F) 06: [ST]  n = 100; p+T = 100; a = 1; p_y = p_d = 18
+# (D) 06: [ST]  n = 100; p+T = 100; a = 1; p_y = p_d = 18
 file06 <- paste(DATDIR, 'psim_T_ST100x99p18.RData', sep = '')
-# (F) 07: [ST]  n = 100; p+T = 100; a = 1; p_y = p_d = 12
+# (D) 07: [ST]  n = 100; p+T = 100; a = 1; p_y = p_d = 12
 file07 <- paste(DATDIR, 'psim_T_ST100x99p12.RData', sep = '')
-# (F) 08: [MT] n = 100; p+T = 100; a = 1s; nts = 2:5
+# (D) 08: [MT] n = 100; p+T = 100; a = 1s; nts = 2:5
 file08a <- paste(DATDIR, 'psim_nt2_MTR100x95.RData', sep = '')
 file08b <- paste(DATDIR, 'psim_nt3_MTR100x95.RData', sep = '')
 file08c <- paste(DATDIR, 'psim_nt4_MTR100x95.RData', sep = '')
@@ -62,49 +62,49 @@ fig1Bp5 <- paste(FIGDIR, 'fig1Bp5.pdf', sep = '')
 fig1Bp6 <- paste(FIGDIR, 'fig1Bp6.pdf', sep = '')
 
 # Figure 1 (individual panels)
-pdf(fig1Ap1, height = 4, width = 3) # First panel
+pdf(fig1Ap1, height = 4, width = 3) # LEFT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res01, alpha = 1, qty = 'rmse', yrange = c(0, 5),
   cex.main = 1.5, add.legend = TRUE)
 dev.off(); cat('Printed figure:', fig1Ap1, '\n')
-pdf(fig1Ap2, height = 4, width = 3) # Second panel
+pdf(fig1Ap2, height = 4, width = 3) # MIDDLE PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res02, alpha = 1/3, qty = 'rmse', yrange = c(0, 5),
   cex.main = 1.5, add.legend = FALSE, var.bac = TRUE)
 dev.off(); cat('Printed figure:', fig1Ap2, '\n')
-pdf(fig1Ap3, height = 4, width = 3) # Third panel
+pdf(fig1Ap3, height = 4, width = 3) # RIGHT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res03, alpha = 0, qty = 'rmse', yrange = c(0, 5),
   cex.main = 1.5, add.legend = FALSE, var.bac = TRUE)
 dev.off(); cat('Printed figure:', fig1Ap3, '\n')
 
 # Figure S4 (individual panels)
-pdf(fig1Bp1, height = 3.5, width = 3.5)  # First top panel
+pdf(fig1Bp1, height = 3.5, width = 3.5)  # TOP LEFT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 1, 0.5), bg = 'white')
 plot.compare.st(res01, alpha = 1, qty = 'ncovs', yrange = c(0.75, 4.25),
   cex.main = 1.5, add.legend = TRUE)
 dev.off(); cat('Printed figure:', fig1Bp1, '\n')
-pdf(fig1Bp2, height = 3.5, width = 3.5)  # Second top panel
+pdf(fig1Bp2, height = 3.5, width = 3.5)  # MIDDLE TOP PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 1, 0.5), bg = 'white')
 plot.compare.st(res02, alpha = 1/3, qty = 'ncovs', yrange = c(0.75, 4.25),
   cex.main = 1.5, add.legend = FALSE, var.bac = TRUE)
 dev.off(); cat('Printed figure:', fig1Bp2, '\n')
-pdf(fig1Bp3, height = 3.5, width = 3.5)  # Third top panel
+pdf(fig1Bp3, height = 3.5, width = 3.5)  # RIGHT TOP PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 1, 0.5), bg = 'white')
 plot.compare.st(res03, alpha = 0, qty = 'ncovs', yrange = c(0.75, 4.25),
   cex.main = 1.5, add.legend = FALSE, var.bac = TRUE)
 dev.off(); cat('Printed figure:', fig1Bp3, '\n')
-pdf(fig1Bp4, height = 3.5, width = 3.5)  # First bottom panel
+pdf(fig1Bp4, height = 3.5, width = 3.5)  # BOTTOM LEFT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 1, 0.5), bg = 'white')
 plot.compare.st(res01, alpha = 1, qty = 'pincl_treat', yrange = c(0.6, 1),
   add.legend = FALSE, show.lasso = FALSE)
 dev.off(); cat('Printed figure:', fig1Bp4, '\n')
-pdf(fig1Bp5, height = 3.5, width = 3.5)  # Second bottom panel
+pdf(fig1Bp5, height = 3.5, width = 3.5)  # BOTTOM MIDDLE PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 1, 0.5), bg = 'white')
 plot.compare.st(res02, alpha = 1/3, qty = 'pincl_treat', yrange = c(0.6, 1),
   add.legend = FALSE, var.bac = TRUE, show.lasso = FALSE)
 dev.off(); cat('Printed figure:', fig1Bp5, '\n')
-pdf(fig1Bp6, height = 3.5, width = 3.5)  # Third bottom panel
+pdf(fig1Bp6, height = 3.5, width = 3.5)  # BOTTOM RIGHT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 1, 0.5), bg = 'white')
 plot.compare.st(res03, alpha = 0, qty = 'pincl_treat', yrange = c(0, 0.25),
   add.legend = FALSE, var.bac = TRUE, show.lasso = FALSE)
@@ -122,17 +122,17 @@ fig2Ap2 <- paste(FIGDIR, 'fig2Ap2.pdf', sep = '')
 fig2Ap3 <- paste(FIGDIR, 'fig2Ap3.pdf', sep = '')
 
 # Plot per panels
-pdf(fig2Ap1, height = 4, width = 3) # First panel
+pdf(fig2Ap1, height = 4, width = 3) # LEFT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res00, alpha = 1, qty = 'rmse', yrange = c(0.5, 5.5),
   cex.main = 1.35, add.legend = TRUE, legpos = 'topright', legend.EB = TRUE)
 dev.off(); cat('Printed figure:', fig2Ap1, '\n')
-pdf(fig2Ap2, height = 4, width = 3) # Second panel
+pdf(fig2Ap2, height = 4, width = 3) # MIDDLE PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res04, alpha = 1, qty = 'rmse', yrange = c(0.5, 5.5),
   cex.main = 1.35, add.legend = FALSE)
 dev.off(); cat('Printed figure:', fig2Ap2, '\n')
-pdf(fig2Ap3, height = 4, width = 3) # Third panel
+pdf(fig2Ap3, height = 4, width = 3) # RIGHT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res05, alpha = 1, qty = 'rmse', yrange = c(0.5, 5.5),
   cex.main = 1.35, show.EB = TRUE, add.legend = FALSE)
@@ -151,17 +151,17 @@ fig3Ap3 <- paste(FIGDIR, 'fig3Ap3.pdf', sep = '')
 
 # Plot per panels
 pcr.here <- FALSE  # Include PCR in the figure
-pdf(fig3Ap1, height = 4, width = 3) # First panel
+pdf(fig3Ap1, height = 4, width = 3) # LEFT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res04, alpha = 1, qty = 'rmse', yrange = c(0, 12),
   cex.main = 1.5, add.legend = TRUE, show.pcr = pcr.here)
 dev.off(); cat('Printed figure:', fig3Ap1, '\n')
-pdf(fig3Ap2, height = 4, width = 3) # Second panel
+pdf(fig3Ap2, height = 4, width = 3) # MIDDLE PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res07, alpha = 1, qty = 'rmse', yrange = c(0, 12),
   cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
 dev.off(); cat('Printed figure:', fig3Ap2, '\n')
-pdf(fig3Ap3, height = 4, width = 3) # Third panel
+pdf(fig3Ap3, height = 4, width = 3) # RIGHT PANEL
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res06, alpha = 1, qty = 'rmse', yrange = c(0, 12),
   cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
@@ -174,7 +174,7 @@ rm(list = ls()[grep('fig', ls())])
 ################################################################################
 # FIGURE 5: MT with increasing number of treatments
 ################################################################################
-#Plot files
+# Plot files
 figX <- paste(FIGDIR, 'figX.pdf', sep = '')
 figXp1 <- paste(FIGDIR, 'figXp1.pdf', sep = '')
 figXp2 <- paste(FIGDIR, 'figXp2.pdf', sep = '')
@@ -197,7 +197,7 @@ res4T4 <- dres08c[[4]]; res5T4 <- dres08d[[4]]
 res2T5 <- dres08a[[5]]; res3T5 <- dres08b[[5]]
 res4T5 <- dres08c[[5]]; res5T5 <- dres08d[[5]]
 
-#We plot averages across present treatments
+# We plot averages across present treatments
 x1 <- res2T1
 x2 <- res3T1
 x3 <- res4T1
