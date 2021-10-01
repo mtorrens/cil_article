@@ -23,18 +23,11 @@ file05 <- paste(DATDIR, 'psim_T_ST100x199.RData', sep = '')
 file06 <- paste(DATDIR, 'psim_T_ST100x99p18.RData', sep = '')
 # (F) 07: [ST]  n = 100; p+T = 100; a = 1; p_y = p_d = 12
 file07 <- paste(DATDIR, 'psim_T_ST100x99p12.RData', sep = '')
-# (F) 08: [MT]  n = 100; p+T = 100; a = 1,1; p_y = p_d = 18
-file08 <- paste(DATDIR, 'psim_T_MT100x98.RData', sep = '')
-# (F) 09: [MT]  n = 100; p+T = 100; a = 1,1; p_y = p_d = 12
-file09 <- paste(DATDIR, 'psim_T_MT100x98p12.RData', sep = '')
-# (F) 10: [MT]  n = 100; p+T = 100; a = 1/3,0; p_y = p_d = 18
-file10 <- paste(DATDIR, 'psim_T_MT100x98smtr.RData', sep = '')
-# (F) 11: [MT]  n = 100; p+T = 100; a = 1/3,0; p_y = p_d = 12
-file11 <- paste(DATDIR, 'psim_T_MT100x98p12smtr.RData', sep = '')
-# (F) 12: [MT]  n = 100; p+T =  50; a = 1,1; p_y = p_d = 6
-file12 <- paste(DATDIR, 'psim_T_MT100x48p6.RData', sep = '')
-# (F) 13: [MTR] n = 100; p+T = 100; a = b1; nts = 2:5
-file13 <- paste(DATDIR, 'psim_T_MTR100x95.RData', sep = '')
+# (F) 08: [MT] n = 100; p+T = 100; a = 1s; nts = 2:5
+file08a <- paste(DATDIR, 'psim_nt2_MTR100x95.RData', sep = '')
+file08b <- paste(DATDIR, 'psim_nt3_MTR100x95.RData', sep = '')
+file08c <- paste(DATDIR, 'psim_nt4_MTR100x95.RData', sep = '')
+file08d <- paste(DATDIR, 'psim_nt5_MTR100x95.RData', sep = '')
 ################################################################################
 
 ################################################################################
@@ -47,17 +40,15 @@ res04 <- get(load(file = file04))[[1]]; cat('Loaded file:', file04, '\n')
 res05 <- get(load(file = file05))[[1]]; cat('Loaded file:', file05, '\n')
 res06 <- get(load(file = file06))[[1]]; cat('Loaded file:', file06, '\n')
 res07 <- get(load(file = file07))[[1]]; cat('Loaded file:', file07, '\n')
-res08 <- get(load(file = file08))[[1]]; cat('Loaded file:', file08, '\n')
-res09 <- get(load(file = file09))[[1]]; cat('Loaded file:', file09, '\n')
-res10 <- get(load(file = file10))[[1]]; cat('Loaded file:', file10, '\n')
-res11 <- get(load(file = file11))[[1]]; cat('Loaded file:', file11, '\n')
-res12 <- get(load(file = file12))[[1]]; cat('Loaded file:', file12, '\n')
-res13 <- get(load(file = file13))[[1]]; cat('Loaded file:', file13, '\n')
-rm(list = paste('file', sprintf('%02.0f', 0:13), sep = ''))
+res08a <- get(load(file = file08a)); cat('Loaded file:', file08a, '\n')
+res08b <- get(load(file = file08b)); cat('Loaded file:', file08b, '\n')
+res08c <- get(load(file = file08c)); cat('Loaded file:', file08c, '\n')
+res08d <- get(load(file = file08d)); cat('Loaded file:', file08d, '\n')
+rm(list = ls()[grep('^file', ls())])
 ################################################################################
 
 ################################################################################
-# FIGURE 1: ST alpha strong/weak/null
+# FIGURE 1 and S4: ST alpha strong/weak/null
 ################################################################################
 # Figure file names
 fig1Ap1 <- paste(FIGDIR, 'fig1Ap1.pdf', sep = '')
@@ -70,7 +61,7 @@ fig1Bp4 <- paste(FIGDIR, 'fig1Bp4.pdf', sep = '')
 fig1Bp5 <- paste(FIGDIR, 'fig1Bp5.pdf', sep = '')
 fig1Bp6 <- paste(FIGDIR, 'fig1Bp6.pdf', sep = '')
 
-# First Part (individual panels)
+# Figure 1 (individual panels)
 pdf(fig1Ap1, height = 4, width = 3) # First panel
 par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
 plot.compare.st(res01, alpha = 1, qty = 'rmse', yrange = c(0, 5),
@@ -87,7 +78,7 @@ plot.compare.st(res03, alpha = 0, qty = 'rmse', yrange = c(0, 5),
   cex.main = 1.5, add.legend = FALSE, var.bac = TRUE)
 dev.off(); cat('Printed figure:', fig1Ap3, '\n')
 
-# Second Part (individual panels)
+# Figure S4 (individual panels)
 pdf(fig1Bp1, height = 3.5, width = 3.5)  # First top panel
 par(mfrow = c(1, 1), mar = c(2, 2, 1, 0.5), bg = 'white')
 plot.compare.st(res01, alpha = 1, qty = 'ncovs', yrange = c(0.75, 4.25),
@@ -123,7 +114,7 @@ dev.off(); cat('Printed figure:', fig1Bp6, '\n')
 rm(list = ls()[grep('fig', ls())])
 
 ################################################################################
-# FIGURE 2: ST changing p (growing design)
+# FIGURE S5: ST changing p (growing design)
 ################################################################################
 # Figure file names
 fig2Ap1 <- paste(FIGDIR, 'fig2Ap1.pdf', sep = '')
@@ -151,7 +142,7 @@ dev.off(); cat('Printed figure:', fig2Ap3, '\n')
 rm(list = ls()[grep('fig', ls())])
 
 ################################################################################
-# FIGURE 3: ST p* -> Inf (increase in confounding)
+# FIGURE S6: ST p* -> Inf (increase in confounding)
 ################################################################################
 # Figure file names
 fig3Ap1 <- paste(FIGDIR, 'fig3Ap1.pdf', sep = '')
@@ -181,158 +172,32 @@ rm(pcr.here)
 rm(list = ls()[grep('fig', ls())])
 
 ################################################################################
-# FIGURE 4: MT p* growing (strong alpha, fixed p)
+# FIGURE 5: MT with increasing number of treatments
 ################################################################################
-# Figure file names
-fig4A <- paste(FIGDIR, 'fig4A.pdf', sep = '')
-fig4Ap1 <- paste(FIGDIR, 'fig4Ap1.pdf', sep = '')
-fig4Ap2 <- paste(FIGDIR, 'fig4Ap2.pdf', sep = '')
-fig4Ap3 <- paste(FIGDIR, 'fig4Ap3.pdf', sep = '')
-fig4Ap4 <- paste(FIGDIR, 'fig4Ap4.pdf', sep = '')
-
-# Decouple outputs
-aux08 <- adapt.output.mt(res08)
-aux09 <- adapt.output.mt(res09)
-res08D1 <- aux08[[1]]
-res08D2 <- aux08[[2]]
-res09D1 <- aux09[[1]]
-res09D2 <- aux09[[2]]
-
-# Plot per panels
-pcr.here <- FALSE
-pdf(fig4Ap1, height = 4, width = 4)  # First top panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res09D1, alpha = 1, qty = 'rmse', mt = TRUE, yrange = c(0, 12),
-  cex.main = 1.5, add.legend = TRUE, legpos = 'topleft', show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig4Ap1, '\n')
-pdf(fig4Ap2, height = 4, width = 4)  # Second top panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res08D1, alpha = 1, qty = 'rmse', mt = TRUE, yrange = c(0, 12),
-  cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig4Ap2, '\n')
-pdf(fig4Ap3, height = 4, width = 4)  # First bottom panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res09D2, alpha = 1, qty = 'rmse', mt = TRUE, yrange = c(0, 12),
-  cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig4Ap3, '\n')
-pdf(fig4Ap4, height = 4, width = 4)  # Second bottom panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res08D2, alpha = 1, qty = 'rmse', mt = TRUE, yrange = c(0, 12),
-  cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig4Ap4, '\n')
-
-# Erase file traces
-rm(pcr.here)
-rm(list = ls()[grep('fig', ls())])
-
-################################################################################
-# FIGURE 4 (B): MT p* = 6 (small design, strong alpha)
-################################################################################
-# Figure file names
-fig4bA <- paste(FIGDIR, 'fig4bA.pdf', sep = '')
-fig4bAp1 <- paste(FIGDIR, 'fig4bAp1.pdf', sep = '')
-fig4bAp2 <- paste(FIGDIR, 'fig4bAp2.pdf', sep = '')
-
-# Decouple outputs
-aux12 <- adapt.output.mt(res12)
-res12D1 <- aux12[[1]]
-res12D2 <- aux12[[2]]
-
-# Plot per panels
-pdf(fig4bAp1, height = 4, width = 4)  # Left panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res12D1, alpha = 1, qty = 'rmse', mt = TRUE,
-  yrange = c(0.5, 5.5), cex.main = 1.5, legpos = 'topleft')
-dev.off(); cat('Printed figure:', fig4bAp1, '\n')
-pdf(fig4bAp2, height = 4, width = 4)  # Right panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res12D2, alpha = 1, qty = 'rmse', mt = TRUE,
-  yrange = c(0.5, 5.5), cex.main = 1.5, add.legend = FALSE)
-dev.off(); cat('Printed figure:', fig4bAp2, '\n')
-
-# Erase file traces
-rm(list = ls()[grep('fig', ls())])
-
-################################################################################
-# FIGURE 5: MT p* growing (weak alpha, fixed p)
-################################################################################
-# Figure file names
-fig5A <- paste(FIGDIR, 'fig5A.pdf', sep = '')
-fig5Ap1 <- paste(FIGDIR, 'fig5Ap1.pdf', sep = '')
-fig5Ap2 <- paste(FIGDIR, 'fig5Ap2.pdf', sep = '')
-fig5Ap3 <- paste(FIGDIR, 'fig5Ap3.pdf', sep = '')
-fig5Ap4 <- paste(FIGDIR, 'fig5Ap4.pdf', sep = '')
-
-# Decouple outputs
-aux10 <- adapt.output.mt(res10)
-aux11 <- adapt.output.mt(res11)
-res10D1 <- aux10[[1]]
-res10D2 <- aux10[[2]]
-res11D1 <- aux11[[1]]
-res11D2 <- aux11[[2]]
-
-# Plot per panels
-pcr.here <- FALSE
-pdf(fig5Ap1, height = 4, width = 4)  # First top panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res11D1, alpha = 1/3, qty = 'rmse', mt = TRUE,
-  yrange = c(0, 12), cex.main = 1.5, add.legend = TRUE, legpos = 'topleft',
-  show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig5Ap1, '\n')
-pdf(fig5Ap2, height = 4, width = 4)  # Second top panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res10D1, alpha = 1/3, qty = 'rmse', mt = TRUE,
-  yrange = c(0, 12), cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig5Ap2, '\n')
-pdf(fig5Ap3, height = 4, width = 4)  # First bottom panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res11D2, alpha = 0, qty = 'rmse', mt = TRUE, yrange = c(0, 12),
-  cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig5Ap3, '\n')
-pdf(fig5Ap4, height = 4, width = 4)  # Second bottom panel
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.compare.st(res10D2, alpha = 0, qty = 'rmse', mt = TRUE, yrange = c(0, 12),
-  cex.main = 1.5, add.legend = FALSE, show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', fig5Ap4, '\n')
-
-# Erase file traces
-rm(pcr.here)
-rm(list = ls()[grep('fig', ls())])
-
-################################################################################
-# FIGURE 6: MT with increasing number of treatments
-################################################################################
+#Plot files
 figX <- paste(FIGDIR, 'figX.pdf', sep = '')
 figXp1 <- paste(FIGDIR, 'figXp1.pdf', sep = '')
 figXp2 <- paste(FIGDIR, 'figXp2.pdf', sep = '')
 
-# Load data
-term <- '_MTR100x95.RData'
-f2 <- paste(DATDIR, 'psim_nt2', term, sep = '')
-f3 <- paste(DATDIR, 'psim_nt3', term, sep = '')
-f4 <- paste(DATDIR, 'psim_nt4', term, sep = '')
-f5 <- paste(DATDIR, 'psim_nt5', term, sep = '')
-res2 <- get(load(file = f2)); cat('Loaded file:', f2, '\n')
-res3 <- get(load(file = f3)); cat('Loaded file:', f3, '\n')
-res4 <- get(load(file = f4)); cat('Loaded file:', f4, '\n')
-res5 <- get(load(file = f5)); cat('Loaded file:', f5, '\n')
-ares2 <- adapt.output.mt(res2)
-ares3 <- adapt.output.mt(res3)
-ares4 <- adapt.output.mt(res4)
-ares5 <- adapt.output.mt(res5)
+# Transform input data
+dres08a <- adapt.output.mt(res08a)
+dres08b <- adapt.output.mt(res08b)
+dres08c <- adapt.output.mt(res08c)
+dres08d <- adapt.output.mt(res08d)
 
 # Assign results
-res2T1 <- ares2[[1]]; res3T1 <- ares3[[1]]
-res4T1 <- ares4[[1]]; res5T1 <- ares5[[1]]
-res2T2 <- ares2[[2]]; res3T2 <- ares3[[2]]
-res4T2 <- ares4[[2]]; res5T2 <- ares5[[2]]
-res2T3 <- ares2[[3]]; res3T3 <- ares3[[3]]
-res4T3 <- ares4[[3]]; res5T3 <- ares5[[3]]
-res2T4 <- ares2[[4]]; res3T4 <- ares3[[4]]
-res4T4 <- ares4[[4]]; res5T4 <- ares5[[4]]
-res2T5 <- ares2[[5]]; res3T5 <- ares3[[5]]
-res4T5 <- ares4[[5]]; res5T5 <- ares5[[5]]
+res2T1 <- dres08a[[1]]; res3T1 <- dres08b[[1]]
+res4T1 <- dres08c[[1]]; res5T1 <- dres08d[[1]]
+res2T2 <- dres08a[[2]]; res3T2 <- dres08b[[2]]
+res4T2 <- dres08c[[2]]; res5T2 <- dres08d[[2]]
+res2T3 <- dres08a[[3]]; res3T3 <- dres08b[[3]]
+res4T3 <- dres08c[[3]]; res5T3 <- dres08d[[3]]
+res2T4 <- dres08a[[4]]; res3T4 <- dres08b[[4]]
+res4T4 <- dres08c[[4]]; res5T4 <- dres08d[[4]]
+res2T5 <- dres08a[[5]]; res3T5 <- dres08b[[5]]
+res4T5 <- dres08c[[5]]; res5T5 <- dres08d[[5]]
 
+#We plot averages across present treatments
 x1 <- res2T1
 x2 <- res3T1
 x3 <- res4T1
@@ -344,11 +209,11 @@ y4 <- rbind(res5T1, res5T2, res5T3, res5T4, res5T5)
 
 # Plots
 pcr.here <- FALSE
-pdf(figXp1, height = 4, width = 4)
-par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
-plot.mtrand(x1, x2, x3, x4, alpha = 1, yrange = c(0.5, 7.5),
-  cex.main = 1.5, add.legend = TRUE, legpos = 'topleft', show.pcr = pcr.here)
-dev.off(); cat('Printed figure:', figXp1, '\n')
+# pdf(figXp1, height = 4, width = 4)
+# par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+# plot.mtrand(x1, x2, x3, x4, alpha = 1, yrange = c(0.5, 7.5),
+#   cex.main = 1.5, add.legend = TRUE, legpos = 'topleft', show.pcr = pcr.here)
+# dev.off(); cat('Printed figure:', figXp1, '\n')
 
 pdf(figXp2, height = 4, width = 4.25)
 par(mfrow = c(1, 1), mar = c(4, 2, 0.5, 0.5), bg = 'white')

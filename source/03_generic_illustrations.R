@@ -4,23 +4,7 @@
 ################################################################################
 
 ################################################################################
-# Non-local prior illustration
-################################################################################
-xs <- seq(-3,3,0.01)
-xl <- expression(alpha[t])
-yl <- 'density'
-ffig <- paste(FIGDIR, 'nlpmom.pdf', sep = '')
-pdf(ffig, height = 3, width = 5)
-par(mfrow = c(1, 1), mar = c(4, 4, 0.5, 0.5), bg = 'white')
-plot(xs, mombf::dmom(x = xs, tau = 0.348), type = 'n',
-  ylab = yl, xlab = xl, ylim = c(0, 0.53))
-abline(h = 0, col = 'gray')
-abline(v = 0, col = 'gray', lty = 2)
-lines(xs, mombf::dmom(x = xs, tau = 0.348))
-dev.off(); cat('Printed figure:', ffig, '\n'); rm(ffig)
-
-################################################################################
-# Representation of CIL prior for values of theta
+# FIGURE 3: Representation of CIL prior for values of theta
 ################################################################################
 # Parameters
 J <- 99
@@ -53,7 +37,23 @@ legend('bottomright', c(expression(theta[1] == +2), expression(theta[1] == +4),
 dev.off(); cat('Printed figure:', ffig, '\n'); rm(ffig)
 
 ################################################################################
-# Representation of differences between EP and EB
+# FIGURE S1: Non-local prior illustration
+################################################################################
+xs <- seq(-3,3,0.01)
+xl <- expression(alpha[t])
+yl <- 'density'
+ffig <- paste(FIGDIR, 'nlpmom.pdf', sep = '')
+pdf(ffig, height = 3, width = 5)
+par(mfrow = c(1, 1), mar = c(4, 4, 0.5, 0.5), bg = 'white')
+plot(xs, mombf::dmom(x = xs, tau = 0.348), type = 'n',
+  ylab = yl, xlab = xl, ylim = c(0, 0.53))
+abline(h = 0, col = 'gray')
+abline(v = 0, col = 'gray', lty = 2)
+lines(xs, mombf::dmom(x = xs, tau = 0.348))
+dev.off(); cat('Printed figure:', ffig, '\n'); rm(ffig)
+
+################################################################################
+# FIGURE S3: Representation of differences between EP and EB
 ################################################################################
 # Design paramaters
 r <- 25

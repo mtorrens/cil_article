@@ -12,13 +12,13 @@
 # Download https://www2.census.gov/programs-surveys/cps/datasets/2019/march/asec2019_pubuse.dat.gz
 # 
 # See https://cengel.github.io/gearup2016/SULdataAccess.html for R packages to
-# get CPS data. Main packages are impusr and icpsrdata
+# get CPS data. Main packages are impusr and icpsrdata.
 #
 # NOTE: if using ipums data or icpsrdata cite
 #   Sarah Flood, Miriam King, Renae Rodgers, Steven Ruggles and J. Robert
 #   Warren. Integrated Public Use Microdata Series, Current Population Survey:
-#   Version 7.0 [dataset]. Minneapolis, MN: IPUMS, 2020.
-#   https://doi.org/10.18128/D030.V7.0
+#   Version 8.0 [dataset]. Minneapolis, MN: IPUMS, 2021.
+#   https://doi.org/10.18128/D030.V8.0
 ################################################################################
 # Variable names and labels available at cps_00004.cbk
 # vignette("ipums-cps", package = "ipumsr")
@@ -29,8 +29,8 @@
 # Reading
 ################################################################################
 # Directory
-if (! dir.exists(paste(INPDIR, 'cps2year/', sep = ''))) {
-  new.dir <- paste(INPDIR, 'cps2year/', sep = '')
+new.dir <- paste(INPDIR, 'cps2year/', sep = '')
+if (! dir.exists(new.dir)) {
   dir.create(new.dir); cat('Created directory:', new.dir, '\n')
 }
 
