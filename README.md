@@ -1,4 +1,4 @@
-# Replication of numerical experiments in the article
+# Replication of numerical experiments, analysis and figures in the article
 
 CIL routines to replicate analyses in the article "Confounder importance learning for treatment effect inference".
 
