@@ -6,11 +6,11 @@
 ################################################################################
 # Setup
 ################################################################################
-#Silent mode (deactivated by default)
+# Silent mode (deactivated by default)
 if (! 'silent' %in% ls()) { silent <- FALSE }  # Set TRUE to run silently
 if (! 'runALL' %in% ls()) { runALL <- FALSE }  # Set TRUE to run ALL scripts
 
-#Version control
+# Version control
 vN <- 'v16'
 vR <- 'xvi'
 
@@ -25,7 +25,7 @@ if (silent == FALSE) {
             pracma [NOT LOADED], plotly, ipumsr\n', sep = '')
 }
 
-#Paths
+# Paths
 PATH <- paste('~/Desktop/year3/bma_teff/', vN, '/', sep = '')  #Change to LOCAL
 SRCDIR <- paste(PATH, 'syntax/', sep = '')
 DATDIR <- paste(PATH, 'data/', sep = '')
@@ -35,7 +35,7 @@ FIGDIR <- paste(PATH, 'figures/', sep = '')
 INPDIR <- paste(PATH, 'input/', sep = '')
 FCNDIR <- paste(SRCDIR, 'functions/', sep = '')
 
-#Create directories if they don't exist
+# Create directories if they don't exist
 if (! dir.exists(DATDIR)) {
   dir.create(DATDIR); cat('Created directory:', DATDIR, '\n')
 }
@@ -76,13 +76,13 @@ if (any(! req == TRUE)) {
   warning('Non-installed required packages need to be installed manually.')
 }; rm(req)
 
-#Where to find the NON-CRAN packages
+# Where to find the NON-CRAN packages
 # HDconfounding: available at https://github.com/jantonelli111/HDconfounding
-#BayesPen: available at https://github.com/AnderWilson/BayesPen
-#regimes: available at https://github.com/AnderWilson/regimes
+# BayesPen: available at https://github.com/AnderWilson/BayesPen
+# regimes: available at https://github.com/AnderWilson/regimes
 
-#Specific functions
-source(paste(FCNDIR, 'functions_janitor.R', sep = ''))
+# Specific functions
+source(paste(FCNDIR, 'functions_misc.R', sep = ''))
 source(paste(FCNDIR, 'functions_gradients.R', sep = ''))
 source(paste(FCNDIR, 'functions_newmethod.R', sep = ''))
 source(paste(FCNDIR, 'support_bac.R', sep = ''))

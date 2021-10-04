@@ -1,3 +1,103 @@
+
 # CODE DESCRIPTION
 
 This document contains the description of the R source code files and instructions to reproduce all the analyses and figures in the article [INSERT TITLE].
+
+# SCRIPT: 00_start.R
+
+This script sets the directories of the projects, loads the required packages into the R environment, as well as the specific functions designed for this project. Such functions are in a nested folder named "functions" that will be introduced later.
+
+REQUIRED USER ACTION: the user must specify a local path for this project in line 29 of this script, replacing the current object PATH with the local directory in which the source folder is located.
+
+After this replacement, this script needs to be run in the R session using the source() function prior to executing any other scripts in this project. If this is run successfully, a message in the console will appear indicating so. 
+
+VERY IMPORTANT: the user needs a set of R packages to run all scripts satisfactorily. These packages need to be installed manually by the user prior to running any of the scripts in the project. This set of packages is listed in the console once the script is run, and a warning is issued if any of the packages is not available locally. The package `regimes` is not available on CRAN and needs to be downloaded from GitHub repository:  https://github.com/AnderWilson/regimes, which can be installed in R using the devtools package (not loaded in this project). Additionally, it is necessary to have plot.ly extension Orca installed to produce one of the figures, this software is available at:
+* https://github.com/plotly/orca
+
+# SCRIPT: 01_paper_simulations.R
+
+This script runs the simulation settings necessary to produce Figures 1 (Section 1), 5 (Section 4.3), S4 (Section 3.4), S5 (Section 3.5) and S6 (Section 3.6) in the article. In essence, it is structured in nine (9) different settings that are simulated sequentially. It is built upon two functions (one for single treatment and one for multiple treatment simulation) which generate random designs according to their argument specifications, and apply all the compared methods in this article on each of theses designs, returning the key summary statistics necessary for the figures for each run. These two functions are detailed in the description of script functions_simulation.R below.
+
+Necessary setups that need to be run to reproduce each figure:
+* Figure 1: Setup 1 (line 94), 2 (l. 145) and 3 (l. 196)
+* Figure 5: Setup 8 (l. 452)
+* Figure S4: Setup 1 (line 94), 2 (l. 145) and 3 (l. 196)
+* Figure S5: Setup 0 (l. 43), 4 (l. 247) and 5 (l. 298)
+* Figure S6: Setup 4 (l. 247), 6 (l. 349) and 7 (l. 409)
+At the start of the script there are boolean objects (l. 31 to 39) that can be (de)activated to run only selected setups. By default, all setups will be run.
+
+# SCRIPT: 02_paper_figures.R
+
+This script produces the PDF figures of Script 01 themselves. It simply loads all the data generated in the previous script and passes it sequentially to specifically designed plotting functions. Again, this is built on two plotting functions, one for single and one for multiple treatments, which will be discussed in the script functions_plot.R. Thus, we reproduce: Figure 1 (l. 64-79), Figure 5 (l. 218-223), Figure S4 (l. 81-111), Figure S5 (l. 125-139), Figure S6 (l. 154-168).
+
+# SCRIPT: 03_generic_illustrations.R
+
+This script produces Figures 3 (Section 2.1), S1 (Section S2.1) and S3 (Section S3.1). These are generic figures to illustrate some of the concepts introduced in the article. 
+
+Figure 3 (l. 7-37) illustrates the shape of the CIL prior for various parameter settings for the single treatment case.
+
+Figure S1 (l. 40-53) simply plots the shape of the density of the product MOM non-local prior.
+
+Figure S3 (l. 56 onwards) produces an example to illustrate the differences in hyper-parameter setting between the two empirical Bayes alternatives discussed in Section 3 of the article.  he code to produce this figure is an extract of the function used to run CIL in the simulations of Script 01, just to illustrate a random case of Setup 1, in particular we extract the part used to obtain the hyper-parameter estimates under the two variations of the empirical Bayes scheme presented in Section 3.
+
+# SCRIPT: 04a_cps_format.R
+
+This script reads the original fwf raw CPS-IPMUS data downloaded from the data and puts it into a usable format. It also screens out uninteresting variables and decodes the necessary variables one by one, as well as discards non-relevant observations for our study (l. 736-740). The list of downloaded variables can be found in the file cps_extract.txt.
+
+# SCRIPT: 04b_cps_transform.R
+
+This script processes the output data of Script 04a, and defines the observations and variables that will be used in the modelling stage. We create the output variable, and the treatment and control matrices. Variables are appended to these matrices one-by-one, creating dummies and other transformations to the original variables, whenever necessary.
+
+# SCRIPT: 05_cps_analysis.R
+
+This script runs the analyses required to later produce Figures 2 (Section 1), 4 (Section 4.2) and S3 (Section S3.3).
+
+Starting from the modelling data created in the previous script, we generate State dummies and interactions, and add the sum-to-zero constraint. Next, we conduct the year level analysis (l. 72-134) in which we apply the compared methods on the dataset including the original four treatments and their interactions at state level. We employ the function cps.methods, described later in the script functions_cps.R, which performs this task and returns all the relevant statistics. This will be necessary to produce Figure 2.
+
+To produce Fig. 4, we study a more complex function of the posterior coefficients (l. 137-248), as described by Equation (16) in Section 4.2. First, we generate the predictions E(d_{i} | x_{i}) for each treatment (globally and at state level), and then we obtain posterior samples of the coefficients with the CIL model estimated by cps.methods. Finally, we compute the expression in (16) with the simple function sample.expabsh, also part of functions_cps.R, using randomly drawn observations combined with the aforementioned posterior samples.
+
+The rest of the script conducts the same year-level analysis to complete Figure 2. This time we use two augmented datasets, which include the original data of the first analysis with 100 (l. 251-309) and 200 (l. 312-309) artificial controls, respectively. The code is identical to the first year-level analysis, to which we add the generation of these variables using gen.fake.preds function (l. 257 and l. 318-319), available in functions_cps.R.
+
+# SCRIPT: 06_cps_figures.R
+
+This script produces Figures 2 (Section 1), 4 (Section 4.2) and S3 (Section S3.3).
+
+After loading the data and formatting it correctly, we render both panels of Figure 2 (l. 77-91) and of Figure S3 (l. 94-108) using the plot.2010vs2019 function, in functions_cps.R. This function plots point estimates and CIs for 2010 and 2019 for methods compared, using the original data and the augmented predictors.
+
+Finally, Figure 4 (l. 111 onwards) is rendered using the function min.twoway.boxplot (LEFT panel), which is a customized boxplot, while the right panel is constructed directly in the script (l. 146-170), plotting state-level point estimates and CIs for 2010 and 2019.
+
+--------------------------------------------------------------------------------
+
+# SCRIPT: functions/functions_cps.R
+
+It contains every custom function used on the CPS dataset. Find dictionary at the beginning of the script and short description at the beginning of each function.
+
+# SCRIPT: functions/functions_gradients.R
+
+It contains the objective functions and the gradients of the two alternative empirical Bayes methods proposed (original function and variational Bayes (EP) versions).
+
+# SCRIPT: functions/functions_misc.R
+
+Generic auxiliary functions of miscellaneous use.
+
+# SCRIPT: functions/functions_newmethod.R
+
+It contains every function designed to apply CIL to a given dataset. Find dictionary at the beginning of the script and short description at the beginning of each function.
+
+# SCRIPT: functions/functions_plot.R
+
+This script contains the custom functions necessary to produce every Figure related to the  different simulation setups, that is, Figures 1, 5, S4, S5 and S6. Find dictionary at the beginning of the script and short description at the beginning of each function.
+
+# SCRIPT: functions/functions_simulator.R
+
+This script contains the two simulator functions to generate datasets according to the simulations examined in the article, and to extract the summary statistics of each of the compared methods on each simulated dataset. It contains two functions, one for single and one for multiple treatment scenarios.
+
+# SCRIPT: functions/support_bac.R
+
+Replication of the functions to run BAC in the package `bacr` to correct variable overflow.
+
+# SCRIPT: functions/cil.R
+
+This file contains all necessary functions to apply CIL to any dataset. This script should be disregarded, as is not used in this article, but it will be encapsulated in an upcoming R package for replication purposes (pending).
+
+
