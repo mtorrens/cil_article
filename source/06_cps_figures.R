@@ -79,13 +79,13 @@ if (! dir.exists(paste(FIGDIR, 'cps/', sep = ''))) {
 # 1(A). Paper panels
 figT <- paste(FIGDIR, 'cps/figApp1top.pdf', sep = '')
 figB <- paste(FIGDIR, 'cps/figApp1bot.pdf', sep = '')
-pdf(figT, height = 4.5, width = 5.5)  # TOP PANEL
-par(mfrow = c(1, 1), bg = 'white')
+pdf(figT, height = 4, width = 5)  # TOP PANEL
+par(mfrow = c(1, 1), mar = c(1, 4, 0.5, 0.5), bg = 'white')
 plot.2010vs2019(obj, treat = 1, ymin = -0.270, ymax = +0.065,
   xlab.in = TRUE, year.tag = TRUE)
 dev.off(); cat('Printed figure:', figT, '\n')
 pdf(figB, height = 4.5, width = 5.5)  # BOTTOM PANEL
-par(mfrow = c(1, 1), bg = 'white')
+par(mfrow = c(1, 1), mar = c(2.5, 4, 0.5, 0.5), bg = 'white')
 plot.2010vs2019(obj, treat = 2, ymin = -0.095, ymax = +0.075,
   xlab.in = FALSE, year.tag = FALSE)
 dev.off(); cat('Printed figure:', figB, '\n')
@@ -96,13 +96,13 @@ dev.off(); cat('Printed figure:', figB, '\n')
 # 1(B). Supplement panels
 figT <- paste(FIGDIR, 'cps/figApp1Btop.pdf', sep = '')
 figB <- paste(FIGDIR, 'cps/figApp1Bbot.pdf', sep = '')
-pdf(figT, height = 4.5, width = 5.5)  # TOP PANEL
-par(mfrow = c(1, 1), bg = 'white')
+pdf(figT, height = 4, width = 5)  # TOP PANEL
+par(mfrow = c(1, 1), mar = c(1, 4, 0.5, 0.5), bg = 'white')
 plot.2010vs2019(obj, treat = 3, ymin = -0.130, ymax = +0.130,
   xlab.in = TRUE, year.tag = TRUE)
 dev.off(); cat('Printed figure:', figT, '\n')
 pdf(figB, height = 4.5, width = 5.5)  # BOTTOM PANEL
-par(mfrow = c(1, 1), bg = 'white')
+par(mfrow = c(1, 1), mar = c(2.5, 4, 0.5, 0.5), bg = 'white')
 plot.2010vs2019(obj, treat = 4, ymin = -0.183, ymax = +0.183,
   xlab.in = FALSE, year.tag = FALSE)
 dev.off(); cat('Printed figure:', figB, '\n')
