@@ -79,16 +79,45 @@ if (! dir.exists(paste(FIGDIR, 'cps/', sep = ''))) {
 # 1(A). Paper panels
 figT <- paste(FIGDIR, 'cps/figApp1top.pdf', sep = '')
 figB <- paste(FIGDIR, 'cps/figApp1bot.pdf', sep = '')
-pdf(figT, height = 4, width = 5)  # TOP PANEL
-par(mfrow = c(1, 1), mar = c(1, 4, 0.5, 0.5), bg = 'white')
+pdf(figT, height = 4.5, width = 5.5)  # TOP PANEL
+par(mfrow = c(1, 1), mar = c(2, 4, 0.5, 0.5), bg = 'white')
+#pdf(figT, height = 4, width = 5)  # TOP PANEL
+#par(mfrow = c(1, 1), mar = c(1, 4, 0.5, 0.5), bg = 'white')
 plot.2010vs2019(obj, treat = 1, ymin = -0.270, ymax = +0.065,
   xlab.in = TRUE, year.tag = TRUE)
+  #xlab.in = TRUE, year.tag = TRUE)
 dev.off(); cat('Printed figure:', figT, '\n')
 pdf(figB, height = 4.5, width = 5.5)  # BOTTOM PANEL
 par(mfrow = c(1, 1), mar = c(2.5, 4, 0.5, 0.5), bg = 'white')
 plot.2010vs2019(obj, treat = 2, ymin = -0.095, ymax = +0.075,
-  xlab.in = FALSE, year.tag = FALSE)
+  xlab.in = TRUE, year.tag = TRUE)
+  #xlab.in = FALSE, year.tag = FALSE)
 dev.off(); cat('Printed figure:', figB, '\n')
+
+# # Point estimates in Fig. 2
+# obj[[1]][, c('ah.ols2', 'ah.dle2', 'ah.bma2', 'ah.nmP2')]
+
+# # Stuff on the text to compare how different methods selected
+# postR <- y2y.bmkP[[1]]$post
+# o1 <- postR$post.bma$margpp
+# o2 <- postR$post.nmP$margpp
+# o3 <- cbind(o1, o2)
+# o3 <- round(o3[order(o3[, 1] - o3[, 2]), ], 4)
+# head(o3, 30)
+# tail(o3, 30)
+
+# post1 <- y2y.bmkP[[1]]$post
+# post2 <- y2y.bmkP[[10]]$post
+# o1 <- post1$post.bma$margpp
+# o2 <- post2$post.bma$margpp
+# o3 <- cbind(o1, o2)
+# o3 <- round(o3[order(o3[, 2] - o3[, 1]), ], 4)
+# head(o3, 30)
+# tail(o3, 30)
+
+# pe.bmk[c(1, 10), colnames(pe.bmk)[grep('nr.', colnames(pe.bmk))]]
+# pe.1hR[c(1, 10), colnames(pe.1hR)[grep('nr.', colnames(pe.1hR))]]
+# pe.2hR[c(1, 10), colnames(pe.2hR)[grep('nr.', colnames(pe.2hR))]]
 
 ################################################################################
 # FIGURE S3
