@@ -366,8 +366,13 @@ plot.2010vs2019 <- function(obj, treat, ymin, ymax, xlab.in = TRUE,
 
   # Year tags
   if (year.tag == TRUE) {
-    rect(posxl1[1] - 0.134, ymax - 0.0132, xmax / 2, ymax + 0.013, col = 'white')
-    rect(xmax / 2, ymax - 0.0132, posxl2[4] + 0.135, ymax + 0.013, col = 'white')
+    if (treat == 2) {
+      rect(posxl1[1] - 0.134, ymax - 0.00675, xmax / 2, ymax + 0.00675, col = 'white')
+      rect(xmax / 2, ymax - 0.00675, posxl2[4] + 0.135, ymax + 0.00675, col = 'white')
+    } else {
+      rect(posxl1[1] - 0.134, ymax - 0.0132, xmax / 2, ymax + 0.013, col = 'white')
+      rect(xmax / 2, ymax - 0.0132, posxl2[4] + 0.135, ymax + 0.013, col = 'white')      
+    }
     text(cutx1[2], ymax, expression(bold('2010')))
     text(cutx2[2], ymax, expression(bold('2019')))
   }
