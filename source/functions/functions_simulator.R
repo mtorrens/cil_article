@@ -17,10 +17,10 @@
 #   method on each run.
 sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
   do.ndl = FALSE, do.bma = FALSE, do.pcr = FALSE, do.ssl = FALSE,
-  do.nme = FALSE, do.nm2 = FALSE, eta = 0.05, bma.mprior = 'bbin',
+  do.nme = FALSE, do.nm2 = FALSE, do.acm = FALSE, bma.mprior = 'bbin',
   lpen = 'lambda.min', mod1 = 'ginv', th.prior = 'unif', beta.prior = 'nlp',
-  rho.min = NULL, rho.max = NULL, R = 1e5, max.mod = Inf, bac.pkg = 'BACprior',
-  only.bacInf = FALSE, ncores = NA) {
+  rho.min = NULL, rho.max = NULL, eta = 0.05, R = 1e5, max.mod = Inf,
+  bac.pkg = 'BACprior', only.bacInf = FALSE, ncores = NA) {
 ################################################################################
   # Function shortcuts and prior setup
   ms <- mombf::modelSelection
@@ -558,6 +558,41 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       t1.nmB <- t2.nmB <- t3.nmB <- NA
     }
 
+    ############################################################################
+    # ACPME
+    ah.acm <- nr.acm <- fp.acm <- fn.acm <- il.acm <- cg.acm <- pd.acm <- NA
+    if (do.acm == TRUE) {
+      # Run method
+      sink(file = paste(TMPDIR, 'tmp_acpme.txt', sep = ''))  # No silent option
+      acm.fit <- try(acpme(y = y, Z = d, C = X, niter = 1e4), silent = TRUE)
+      #acm.fit <- regimes::acpme(y = y, Z = d, C = X, niter = 1e4)
+      sink()
+
+      if (class(acm.fit) != 'try-error') {
+        # BMA point estimate
+        ah.acm <- colMeans(acm.fit[['beta']])
+
+        # Model size
+        orc.idx <- as.numeric(substr( orc.model[grep('x', orc.model)], 2,
+          nchar(orc.model[grep('x', orc.model)])))
+        nr.acm <- mean(rowSums(acm.fit[['alpha']]))
+        fp.acm <- mean(apply(acm.fit[['alpha']], 1, function(x)
+          sum(! unname(which(x == 1)) %in% orc.idx)
+        ))
+        fn.acm <- mean(apply(acm.fit[['alpha']], 1, function(x)
+          sum(! orc.idx %in% unname(which(x == 1)))
+        ))
+
+        # Inclusion indicators
+        pr.eta <- c(eta / 2, 1 - eta / 2)
+        ci.acm <- unname(apply(acm.fit[['beta']], 2, quantile, probs = pr.eta))
+        il.acm <- apply(ci.acm, 2, function(x) { diff(range(x)) })
+        cg.acm <- inside(a, ci.acm[, 1])
+        pd.acm <- !inside(0, ci.acm[, 1])
+      }
+    }
+
+    ############################################################################
     # Return results
     return(c(nc = nc,
       ah.orc = ah.orc, cg.orc = cg.orc, il.orc = il.orc, nr.orc = nr.orc,
@@ -578,6 +613,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       fp.bcT = fp.bcT, fn.bcT = fn.bcT, pd.bcT = pd.bcT,
       ah.bcI = ah.bcI, cg.bcI = cg.bcI, il.bcI = il.bcI, nr.bcI = nr.bcI,
       fp.bcI = fp.bcI, fn.bcI = fn.bcI, pd.bcI = pd.bcI,
+      ah.acm = ah.acm, cg.acm = cg.acm, il.acm = il.acm, nr.acm = nr.acm,
+      fp.acm = fp.acm, fn.acm = fn.acm, pd.acm = pd.acm,
       ah.bm1 = ah.bm1, cg.bm1 = cg.bm1, il.bm1 = il.bm1, nr.bm1 = nr.bm1,
       fp.bm1 = fp.bm1, fn.bm1 = fn.bm1, pd.bm1 = pd.bm1,
       ah.bm2 = ah.bm2, cg.bm2 = cg.bm2, il.bm2 = il.bm2, nr.bm2 = nr.bm2,
@@ -1068,3 +1105,4 @@ sim.teff.mt <- function(a, n, p, S, phiy, phid, N, do.bac = FALSE,
   return(invisible(sim))
 }; sim.teff.mt.rand <- compiler::cmpfun(sim.teff.mt)
 # END OF SCRIPT
+

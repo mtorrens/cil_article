@@ -153,7 +153,7 @@ plot.compare.st <- function(sims, alpha, qty = 'rmse', xtags = 0:6, titol = '',
   show.lasso = TRUE, show.EB = FALSE, legend.EB = FALSE) {
 ################################################################################
   # Columns of interest and general plotting parameter defaults
-  mth <- c('orc', 'ore', 'nle', 'dle', 'pcr', 'bcI', 'bm2', 'nmA', 'n2A', 'ssl')
+  mth <- c('orc', 'ore', 'nle', 'dle', 'pcr', 'bcI', 'acm', 'bm2', 'nmA', 'n2A', 'ssl')
   leg.pos <- 'topleft'
   xtags <- sort(unique(sims[, 'nc']))
 
@@ -187,17 +187,18 @@ plot.compare.st <- function(sims, alpha, qty = 'rmse', xtags = 0:6, titol = '',
   rqty.dle <- tapply(sims[, cols[4]], sims[, 'nc'], qty.f) / qty.orc
   rqty.pcr <- tapply(sims[, cols[5]], sims[, 'nc'], qty.f) / qty.orc
   rqty.bcI <- tapply(sims[, cols[6]], sims[, 'nc'], qty.f) / qty.orc
-  rqty.bm2 <- tapply(sims[, cols[7]], sims[, 'nc'], qty.f) / qty.orc
-  rqty.nmA <- tapply(sims[, cols[8]], sims[, 'nc'], qty.f) / qty.orc
-  rqty.n2A <- tapply(sims[, cols[9]], sims[, 'nc'], qty.f) / qty.orc
-  rqty.ssl <- tapply(sims[, cols[10]], sims[, 'nc'], qty.f) / qty.orc
+  rqty.acm <- tapply(sims[, cols[7]], sims[, 'nc'], qty.f) / qty.orc
+  rqty.bm2 <- tapply(sims[, cols[8]], sims[, 'nc'], qty.f) / qty.orc
+  rqty.nmA <- tapply(sims[, cols[9]], sims[, 'nc'], qty.f) / qty.orc
+  rqty.n2A <- tapply(sims[, cols[10]], sims[, 'nc'], qty.f) / qty.orc
+  rqty.ssl <- tapply(sims[, cols[11]], sims[, 'nc'], qty.f) / qty.orc
   rqty.orc <- tapply(sims[, cols[1]], sims[, 'nc'], qty.f) / qty.orc
   if (var.bac == TRUE) { rqty.bcI <- jitter(rqty.bcI, factor = 2.5) }
 
   # Plot preparing
   pchs <- c(3, 4, 5, 2, 6, 1, 4, 8)#, 1)
   ltys <- c(2, 1, 1, 1, 2, 1, 1, 1)#, 1)
-  labs <- c('LASSO', 'DML', 'PCR', 'BAC', 'BMA',
+  labs <- c('LASSO', 'DL', 'PCR', 'BAC', 'BMA',
             'CIL (EP)', 'CIL (EB)', 'EM-SSL')#, 'Ext. Oracle')
   # labs <- c('LASSO (PSI)', 'DML (LASSO)', 'PCR (BIC)', 'BAC (Inf)', 'BMA (NLP)',
   #           'CIL (EP)', 'CIL (EB)', 'EM-SSL')#, 'Ext. Oracle')
@@ -231,7 +232,12 @@ plot.compare.st <- function(sims, alpha, qty = 'rmse', xtags = 0:6, titol = '',
     lines(rqty.ssl, col = colors[8], lty = ltys[8], type = 'b', pch = pchs[8])
   }
   #lines(rqty.ore, col = colors[9], lty = ltys[8], type = 'b', pch = pchs[9])
-  
+
+  # Add ACPME for SINGLE TREATMENT
+  if (mt == FALSE) {
+    lines(rqty.acm, col = 'azure4', lty = 1, type = 'b', pch = 0)
+  }
+
   # Legend
   if (add.legend == TRUE) {
     ordre <- c(1:5, 8, 6:7)
@@ -268,8 +274,22 @@ plot.compare.st <- function(sims, alpha, qty = 'rmse', xtags = 0:6, titol = '',
       labs[which(labs == 'CIL (EP)')] <- 'CIL'
     }
 
-    legend(leg.pos, labs[ordre], col = colors[ordre], lty = ltys[ordre],
-      pch = pchs[ordre], bg = 'white', ncol = 2, merge = FALSE, cex = 0.8)
+    # Add ACPME layer for SINGLE TREATMENT after all
+    if (mt == TRUE) {
+      new.labs <- labs[ordre]
+      new.colors <- colors[ordre]
+      new.ltys <- ltys[ordre]
+      new.pchs <- pchs[ordre]
+    } else {
+      idx <- length(labs) # CIL index
+      new.labs <- c(labs[ordre][-idx], 'ACPME', labs[ordre][idx])
+      new.colors <- c(colors[ordre][-idx], 'azure4', colors[ordre][idx])
+      new.ltys <- c(ltys[ordre][-idx], 1, ltys[ordre][idx])
+      new.pchs <- c(pchs[ordre][-idx], 0, pchs[ordre][idx])
+    }
+
+    legend(leg.pos, new.labs, col = new.colors, lty = new.ltys,
+      pch = new.pchs, bg = 'white', ncol = 2, merge = FALSE, cex = 0.8)
   }
 }
 
