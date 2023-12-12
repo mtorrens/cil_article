@@ -18,7 +18,8 @@ do.nme <- TRUE  # New method (EP version)
 do.nm2 <- TRUE  # New method (EB version)
 
 # Number of cores used in the simulations (override manually)
-ncor <- parallel::detectCores() - 1
+ncor <- 8
+#ncor <- parallel::detectCores() - 1
 
 # Number of simulated datasets on each run
 N <- 250
@@ -28,15 +29,15 @@ N <- 250
 # SETUPS
 # Status: (P) Pending; (U) Unfinished; (R) Running; (D) Done
 ################################################################################
-run00 <- TRUE  # (D) 0: [ST] n =  50; p+T =  25; a = 1  ; p_y = p_d = 6
-run01 <- TRUE  # (D) 1: [ST] n = 100; p+T =  50; a = 1  ; p_y = p_d = 6
-run02 <- TRUE  # (D) 2: [ST] n = 100; p+T =  50; a = 1/3; p_y = p_d = 6
-run03 <- TRUE  # (D) 3: [ST] n = 100; p+T =  50; a = 0  ; p_y = p_d = 6
-run04 <- TRUE  # (D) 4: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 6
-run05 <- TRUE  # (D) 5: [ST] n = 100; p+T = 200; a = 1  ; p_y = p_d = 6
-run06 <- TRUE  # (D) 6: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 18
-run07 <- TRUE  # (D) 7: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 12
-run08 <- TRUE  # (D) 8: [MT] n = 100; p+T = 100; a = 1s ; nts = 2,3,4,5
+run00 <- FALSE  # (D) 0: [ST] n =  50; p+T =  25; a = 1  ; p_y = p_d = 6
+run01 <- FALSE  # (D) 1: [ST] n = 100; p+T =  50; a = 1  ; p_y = p_d = 6
+run02 <- FALSE  # (D) 2: [ST] n = 100; p+T =  50; a = 1/3; p_y = p_d = 6
+run03 <- FALSE  # (D) 3: [ST] n = 100; p+T =  50; a = 0  ; p_y = p_d = 6
+run04 <- FALSE  # (D) 4: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 6
+run05 <- FALSE  # (D) 5: [ST] n = 100; p+T = 200; a = 1  ; p_y = p_d = 6
+run06 <- FALSE  # (D) 6: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 18
+run07 <- FALSE  # (D) 7: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 12
+run08 <- FALSE  # (D) 8: [MT] n = 100; p+T = 100; a = 1s ; nts = 2,3,4,5
 ################################################################################
 
 ################################################################################
@@ -68,8 +69,8 @@ if (run00 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
       bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
+      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -87,7 +88,8 @@ if (run00 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -119,8 +121,8 @@ if (run01 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
       bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
+      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -138,7 +140,8 @@ if (run01 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -170,8 +173,8 @@ if (run02 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
       bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
+      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -189,7 +192,8 @@ if (run02 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -221,8 +225,8 @@ if (run03 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
       bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
+      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -240,7 +244,8 @@ if (run03 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -272,8 +277,8 @@ if (run04 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
       bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
+      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -291,7 +296,8 @@ if (run04 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -313,22 +319,28 @@ if (run05 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   n <- 100; p <- 199; a <- 1; pstar <- 6
   ones <- rep(1L, pstar)
   res <- NULL
+  #for (k in 7) {
   for (k in 1:(pstar + 1)) {
     # Simulation
-    now <- paste('[', Sys.time(), ' CET]', sep = '')
-    cat(now, ' Batch: ', k, ' of ', pstar + 1, '... ', sep = '')
-    sim <- sim.teff(a = a, n = n, p = p, S = diag(p), phid = 1, phiy = 1,
-      by = c(ones, rep(0L, p - length(ones))),
-      bd = c(rep(0L, k - 1), ones, rep(0L, p - k + 1 - length(ones))),
-      N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
-      max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
-      bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
-
-    # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
-    save(sim, file = fin); cat('Saved file:', fin, '\n'); rm(fin)
+    if (! file.exists(fin) | force.sim == TRUE) {
+      now <- paste('[', Sys.time(), ' CET]', sep = '')
+      cat(now, ' Batch: ', k, ' of ', pstar + 1, '... ', sep = '')
+      sim <- sim.teff(a = a, n = n, p = p, S = diag(p), phid = 1, phiy = 1,
+        by = c(ones, rep(0L, p - length(ones))),
+        bd = c(rep(0L, k - 1), ones, rep(0L, p - k + 1 - length(ones))),
+        N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
+        max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
+        bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
+        do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+        do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
+  
+      # Save partial progress
+      fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
+      save(sim, file = fin); cat('Saved file:', fin, '\n'); rm(fin)
+    } else {
+      sim <- get(load(file = fin)); cat('Loaded file:', fin, '\n')
+    }
 
     # Build output matrix
     res <- rbind.data.frame(res, sim)
@@ -342,7 +354,8 @@ if (run05 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -374,8 +387,8 @@ if (run06 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
       bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
+      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     nc <- pstar - 3 * (k - 1)
@@ -394,7 +407,8 @@ if (run06 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -407,6 +421,7 @@ if (run07 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   mod1 <- 'lasso_bic'
   bac.pkg <- 'bacr'
   th.prior <- 'unif'
+  bma.mprior <- 'bbin'
   beta.prior <- 'nlp'
   only.bacInf <- TRUE
 
@@ -425,8 +440,8 @@ if (run07 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
       bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl, do.pcr = do.pcr,
-      do.nme = do.nme, do.nm2 = do.nm2)
+      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
+      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     nc <- pstar - 2 * (k - 1)
@@ -445,7 +460,8 @@ if (run07 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 
 ################################################################################
@@ -488,6 +504,8 @@ if (run08 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   # Save data
   save(out, file = file.out); cat('Saved file:', file.out, '\n')
 } else {
-  load(file = file.out); cat('Loaded file:', file.out, '\n')
+  cat('   NOT run.\n')
+  #load(file = file.out); cat('Loaded file:', file.out, '\n')
 }; rm(file.out)
 # END OF SCRIPT
+
