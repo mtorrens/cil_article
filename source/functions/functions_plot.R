@@ -10,6 +10,9 @@
 # * adapt.output.mt
 # * plot.compare.st
 # * plot.mtrand
+# * plot.theta1.nc
+# * plot.prop.var.mse
+# * plot.bac.acpme.variants
 ################################################################################
 
 ################################################################################
@@ -395,5 +398,228 @@ plot.mtrand <- function(x1, x2, x3, x4, alpha, qty = 'rmse', yrange = NULL,
     legend(leg.pos, labs[ordre], col = colors[ordre], lty = ltys[ordre],
       pch = pchs[ordre], bg = 'white', ncol = 2, merge = FALSE, cex = 0.8)
   }
+}
+
+################################################################################
+plot.theta1.nc <- function(res, metric = 'mean', add.legend = TRUE) {
+################################################################################
+  if (metric == 'median') {
+    qty <- tapply(res[, 'th1.ep'], res[, 'nc'], median)
+  } else if (metric == 'mean') {
+    qty <- tapply(res[, 'th1.ep'], res[, 'nc'], mean)
+  } else {
+    stop('wrong metric.')
+  }
+
+  # Plot
+  plot(NA, xaxt = 'n', col = 'white', xlab = '', ylab = '', main = '',
+    xlim = c(1, length(qty)) - 1, ylim = range(qty), cex.main = 1.5)
+  axis(1, 1:length(qty) - 1, names(qty)); grid()
+  lines(names(qty), qty, col = 'black', lty = 1, type = 'b', pch = 16)
+
+  # Legend
+  if (add.legend == TRUE) {
+    legend('topleft', paste('theta1 (', metric, ')', sep = ''),
+      col = 'black', pch = 16, bg = 'white', cex = 0.8)
+  }
+}
+
+################################################################################
+plot.prop.var.mse <- function(res, alpha, display = 'props', add.legend = TRUE, legpos, ylims) {
+################################################################################  
+  if (missing(alpha)) { alpha <- NA }  # Sometimes not needed
+
+  # Functions
+  qty.mse <- function(x, a) { mean((x - a) ** 2, na.rm = TRUE) }
+  qty.bia <- function(x, a) { (mean(x, na.rm = TRUE) - a) ** 2 }
+  qty.var <- function(x) { mean((x - mean(x, na.rm = TRUE)) ** 2, na.rm = TRUE) }
+  if (display == 'props') {
+    qty.f <- function(res, method, a = alpha) {
+      colnom <- paste('ah', method, sep = '.')
+      est.mse <- tapply(res[, colnom], res[, 'nc'], function(x) { qty.mse(x, a = alpha) })
+      est.var <- tapply(res[, colnom], res[, 'nc'], function(x) { qty.var(x) })
+      prop.var <- est.var / est.mse
+      return(prop.var)
+    }
+  } else if (display == 'bias2') {
+    qty.f <- function(res, method, a = alpha) {
+      colnom <- paste('ah', method, sep = '.')
+      est.bias <- tapply(res[, colnom], res[, 'nc'], function(x) { qty.bia(x, a = alpha) })
+      return(est.bias)
+    }
+  } else if (display == 'variance') {
+    qty.f <- function(res, method, a = alpha) {
+      colnom <- paste('ah', method, sep = '.')
+      est.var <- tapply(res[, colnom], res[, 'nc'], function(x) { qty.var(x) })
+      return(est.var)
+    }
+  } else if (display == 'prop_conf') {
+    qty.f <- function(res, method, a = alpha) {
+      colnom <- paste('pc', method, sep = '.')
+      prop.conf <- tapply(res[, colnom], res[, 'nc'], mean)
+      prop.conf[which(is.nan(prop.conf))] <- NA
+      return(prop.conf)
+    }
+  } else if (display == 'prop_instr') {
+    qty.f <- function(res, method, a = alpha) {
+      colnom <- paste('pi', method, sep = '.')
+      prop.instr <- tapply(res[, colnom], res[, 'nc'], mean)
+      prop.instr[which(is.nan(prop.instr))] <- NA
+      return(prop.instr)
+    }
+  }
+
+  # Proportion of estimator variance (var / mse, since mse = var + bias^2)
+  prop.var <- data.frame(
+    nc = names(qty.f(res, method = 'orc', a = alpha)),
+    qty_orc = qty.f(res, method = 'orc', a = alpha),
+    qty_ore = qty.f(res, method = 'ore', a = alpha),
+    qty_nle = qty.f(res, method = 'nle', a = alpha),
+    qty_dle = qty.f(res, method = 'dle', a = alpha),
+    qty_pcr = qty.f(res, method = 'pcr', a = alpha),
+    qty_bcI = qty.f(res, method = 'bcI', a = alpha),
+    qty_acm = qty.f(res, method = 'acm', a = alpha),
+    qty_bm2 = qty.f(res, method = 'bm2', a = alpha),
+    qty_nmA = qty.f(res, method = 'nmA', a = alpha),
+    qty_n2A = qty.f(res, method = 'n2A', a = alpha),
+    qty_ssl = qty.f(res, method = 'ssl', a = alpha))
+
+  # Setup
+  labs <- c('Oracle MLE', 'LASSO', 'DL', 'BAC', 'BMA', 'ACPME', 'CIL')
+  cols <- c(rep('azure4', 6), 'black')
+  ltys <- c(1, 2, 1, 1, 2, 1, 1)
+  pchs <- c(16, 3, 4, 2, 6, 0, 1)
+
+  # Plot
+  if (missing(ylims)) {
+    if (display %in% c('props', 'prop_conf', 'prop_instr')) {
+      ylims <- c(0, 1)
+    } else {
+      ylims <- range(prop.var[, which(apply(prop.var, 2, function(x) all(! is.na(x))))][, -1])
+      #ylims <- range(prop.var[-1, which(apply(prop.var, 2, function(x) all(! is.na(x[-1]))))][, -1])
+    }
+  }
+  plot(NA, type = 'l', xaxt = 'n', col = 'white', xlab = '', ylab = '',
+    main = '', xlim = c(1, nrow(prop.var)), ylim = ylims, cex.main = 1.5, cex.axis = 0.8)
+  axis(1, 1:nrow(prop.var), prop.var[, 'nc']); grid()
+  #abline(h = 0, col = 'gray')
+  if (display %in% c('props', 'prop_conf', 'prop_instr')) {
+    abline(h = 0, col = 'darkgray'); abline(h = 1, col = 'darkgray')
+  }
+
+  if (! display %in% c('prop_conf', 'prop_instr')) {
+    lines(prop.var[, 'qty_orc'], col = cols[1], lty = ltys[1], type = 'b', pch = pchs[1])
+  }
+  lines(prop.var[, 'qty_nle'], col = cols[2], lty = ltys[2], type = 'b', pch = pchs[2])
+  lines(prop.var[, 'qty_dle'], col = cols[3], lty = ltys[3], type = 'b', pch = pchs[3])
+  lines(prop.var[, 'qty_bcI'], col = cols[4], lty = ltys[4], type = 'b', pch = pchs[4])
+  lines(prop.var[, 'qty_bm2'], col = cols[5], lty = ltys[5], type = 'b', pch = pchs[5])
+  lines(prop.var[, 'qty_acm'], col = cols[6], lty = ltys[6], type = 'b', pch = pchs[6])
+  lines(prop.var[, 'qty_nmA'], col = cols[7], lty = ltys[7], type = 'b', pch = pchs[7])
+
+  # Legend
+  if (missing(legpos)) { legpos <- 'bottomleft' }
+  if (display %in% c('prop_conf', 'prop_instr')) {
+    labs <- labs[-1]
+    cols <- cols[-1]
+    ltys <- ltys[-1]
+    pchs <- pchs[-1]
+  }
+  if (add.legend == TRUE) {
+    if (is.numeric(legpos)) {
+      legend(x = legpos[1], y = legpos[2], labs, col = cols, lty = ltys,
+        #pch = pchs, bg = 'white', ncol = 2, merge = FALSE, cex = 0.8)
+        pch = pchs, bg = 'white', ncol = 1, merge = FALSE, cex = 0.8)        
+    } else {
+      legend(legpos, labs, col = cols, lty = ltys,
+        #pch = pchs, bg = 'white', ncol = 2, merge = FALSE, cex = 0.8)
+        pch = pchs, bg = 'white', ncol = 1, merge = FALSE, cex = 0.8)        
+    }
+  }
+}
+
+################################################################################
+plot.bac.acpme.variants <- function(res, alpha, display = 'rmse', add.legend = TRUE, legpos, ylims, var.bac = FALSE) {
+################################################################################  
+  # Functions
+  qty.rmse <- function(x, a) { sqrt(mean((x - a) ** 2, na.rm = TRUE)) }
+  if (display == 'rmse') {
+    qty.f <- function(res, method, a = alpha) {
+      colnom <- paste('ah', method, sep = '.')
+      rmse <- tapply(res[, colnom], res[, 'nc'], function(x) { qty.rmse(x, a = alpha) })
+      return(rmse)
+    }
+  }
+
+  # Proportion of estimator variance (var / mse, since mse = var + bias^2)
+  prop.var <- data.frame(
+    nc = names(qty.f(res, method = 'orc', a = alpha)),
+    qty_orc = qty.f(res, method = 'orc', a = alpha),
+    qty_bcI = qty.f(res, method = 'bcI', a = alpha),
+    qty_bc1 = qty.f(res, method = 'bc1', a = alpha),
+    qty_bcT = qty.f(res, method = 'bcT', a = alpha),
+    qty_acm = qty.f(res, method = 'acm', a = alpha),
+    qty_ac1 = qty.f(res, method = 'ac1', a = alpha),
+    qty_ac2 = qty.f(res, method = 'ac2', a = alpha))
+  prop.var[, -1] <- apply(
+    prop.var[, -1], 2, function(x) { x / prop.var[, 'qty_orc'] })
+  if (var.bac == TRUE) {
+    prop.var[, 'qty_bcI'] <- jitter(prop.var[, 'qty_bcI'], factor = 2.5)
+    prop.var[, 'qty_bcT'] <- jitter(prop.var[, 'qty_bcT'], factor = 2.5)
+    prop.var[, 'qty_bc1'] <- jitter(prop.var[, 'qty_bc1'], factor = 2.5)
+  }
+
+  # Setup
+  labs <- c('BAC (Inf)', 'BAC (10)', 'BAC (1)', 'ACPME (eigen)', 'ACPME (corr.)', 'ACPME (proj.)')
+  cols <- rep(c('black', rep('azure4', 2)), 2)
+  ltys <- c(1, 2, 3, 1, 2, 3)
+  pchs <- c(2, 2, 2, 0, 0, 0)
+
+  # Plot
+  if (missing(ylims)) {
+    if (display %in% c('props', 'prop_conf', 'prop_instr')) {
+      ylims <- c(0, 1)
+    } else {
+      ylims <- range(prop.var[, which(apply(prop.var, 2, function(x) all(! is.na(x))))][, -1])
+      #ylims <- range(prop.var[-1, which(apply(prop.var, 2, function(x) all(! is.na(x[-1]))))][, -1])
+    }
+  }
+  plot(NA, type = 'l', xaxt = 'n', col = 'white', xlab = '', ylab = '',
+    main = '', xlim = c(1, nrow(prop.var)), ylim = ylims, cex.main = 1.5, cex.axis = 0.8)
+  axis(1, 1:nrow(prop.var), prop.var[, 'nc']); grid()
+  abline(h = 1, col = 'darkgray')
+  lines(prop.var[, 'qty_bcI'], col = cols[1], lty = ltys[1], type = 'b', pch = pchs[1])
+  lines(prop.var[, 'qty_bcT'], col = cols[2], lty = ltys[2], type = 'b', pch = pchs[2])
+  lines(prop.var[, 'qty_bc1'], col = cols[3], lty = ltys[3], type = 'b', pch = pchs[3])
+  lines(prop.var[, 'qty_acm'], col = cols[4], lty = ltys[4], type = 'b', pch = pchs[4])
+  lines(prop.var[, 'qty_ac1'], col = cols[5], lty = ltys[5], type = 'b', pch = pchs[5])
+  lines(prop.var[, 'qty_ac2'], col = cols[6], lty = ltys[6], type = 'b', pch = pchs[6])
+
+  # Legend
+  if (add.legend == TRUE) {
+    if (missing(legpos)) { legpos <- 'bottomleft' }
+    if (is.numeric(legpos)) {
+      legend(x = legpos[1], y = legpos[2], labs, col = cols, lty = ltys,
+        #pch = pchs, bg = 'white', ncol = 2, merge = FALSE, cex = 0.8)
+        pch = pchs, bg = 'white', ncol = 1, merge = FALSE, cex = 0.7)        
+    } else {
+      legend(legpos, labs, col = cols, lty = ltys,
+        #pch = pchs, bg = 'white', ncol = 2, merge = FALSE, cex = 0.8)
+        pch = pchs, bg = 'white', ncol = 1, merge = FALSE, cex = 0.7)        
+    }
+  }
+
+  # Return table with values
+  return(invisible(prop.var))
+}
+
+################################################################################
+# Support function for simple visualisation of input abortion data
+################################################################################
+plot.xy <- function(xvar, yvar) {
+  par(mfrow = c(1, 1), mar = c(2.5, 2.5, 0.5, 0.5))
+  plot(xvar, yvar, pch = 16, col = 'darkred', cex = 0.75)
+  abline(lm(yvar ~ xvar), lty = 2)
+  abline(h = 0, lty = 3, col = 'gray')
 }
 # END OF SCRIPT

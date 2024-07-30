@@ -155,12 +155,14 @@ cps.methods <- function(y, D, X, I = NULL, minimal = FALSE, eta = 0.05,
   # ACPME ######################################################################
   ah.bac <- c1.bac <- c2.bac <- il.bac <- pd.bac <- rep(NA, nc)
   nr.bac <- NA
-  if (do.acm == TRUE & minimal == FALSE) {
+  if (do.acm == TRUE) {
+  #if (do.acm == TRUE & minimal == FALSE) {
     old.names <- colnames(X)
     colnames(X) <- clean.names(colnames(X))
     tmp.file <- paste(TMPDIR, 'tmp_acpme_', Sys.time(), '.txt', sep = '')
     sink(file = tmp.file)
-    acm.fit <- try(acpme(y = y, Z = D, C = X[, -1], niter = 1500), silent = T)
+    acm.fit <- try(acpme(y = y, Z = D, C = X[, -1], niter = 1e4), silent = FALSE)
+    #acm.fit <- try(acpme(y = y, Z = D, C = X[, -1], niter = 1500), silent = T)
     sink(); unlink(tmp.file)
     colnames(X) <- old.names
 

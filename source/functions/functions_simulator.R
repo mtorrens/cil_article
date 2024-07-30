@@ -20,7 +20,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
   do.nme = FALSE, do.nm2 = FALSE, do.acm = FALSE, bma.mprior = 'bbin',
   lpen = 'lambda.min', mod1 = 'ginv', th.prior = 'unif', beta.prior = 'nlp',
   rho.min = NULL, rho.max = NULL, eta = 0.05, R = 1e5, max.mod = Inf,
-  bac.pkg = 'BACprior', only.bacInf = FALSE, ncores = NA) {
+  bac.pkg = 'BACprior', only.bacInf = FALSE, acpme.onlyDEF = TRUE,
+  ncores = NA) {
 ################################################################################
   # Function shortcuts and prior setup
   ms <- mombf::modelSelection
@@ -37,7 +38,11 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
   }
 
   # Amount of confounders
-  nc <- sum((by != 0) + (bd != 0) == 2)
+  conf.idx <- which(by == 1 & bd == 1)  # Indexes of confounder variables
+  inst.idx <- which(by == 0 & bd == 1)  # Indexes of instrument variables
+  #nc <- sum((by != 0) + (bd != 0) == 2)
+  nc <- length(conf.idx)
+  ni <- length(inst.idx)
 
   # Parallelise
   if (is.na(ncores)) { ncores <- parallel::detectCores() - 1 }
@@ -66,6 +71,7 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
 
     # Oracle OLS estimation
     orc.lm <- lm(y ~ d + X[, which(by != 0)] - 1)
+    sum.lm <- summary(orc.lm)
     ah.orc <- coef(orc.lm)[['d']]
     nr.orc <- length(which(by != 0)) + 1 #as.numeric(a != 0)  # No. regressors
     fp.orc <- 0  # False positives
@@ -74,11 +80,14 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
     il.orc <- diff(range(ci.orc))  # Interval length
     cg.orc <- inside(a, ci.orc)
     pd.orc <- !inside(0, ci.orc)
+    pc.orc <- sum(sum.lm[['coefficients']][conf.idx + 1, 4] < eta) / nc
+    pi.orc <- 0
 
     # Oracle estimation including whatever affects d
     inc <- unique(c(which(by != 0), which(bd != 0)))
     tinc <- which(by != 0) + 1; if (a != 0) { tinc <- c(1, tinc) }
     ore.lm <- lm(y ~ d + X[, inc] - 1)
+    sum.lm <- summary(ore.lm)
     ah.ore <- coef(ore.lm)[['d']]
     nr.ore <- length(inc) + as.numeric(a != 0)
     fp.ore <- sum(! which(bd != 0) %in% which(by != 0))  # FPs
@@ -87,6 +96,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
     il.ore <- diff(range(ci.ore))
     cg.ore <- inside(a, ci.ore)
     pd.ore <- !inside(0, ci.ore)
+    pc.ore <- sum(sum.lm[['coefficients']][conf.idx + 1, 4] < eta) / nc
+    pi.ore <- sum(sum.lm[['coefficients']][inst.idx + 1, 4] < eta) / ni
 
     ############################################################################
     # Lasso-based methods
@@ -103,6 +114,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       il.nle <- NA
       cg.nle <- NA
       pd.nle <- length(which(nle.model == 'd1'))
+      pc.nle <- sum(conf.idx %in% aux) / nc
+      pi.nle <- sum(inst.idx %in% aux) / ni
 
       # Attempt inference on treatment using method in Lee et al. (2016)
       nl.beta <- as.vector(coef(nl.fit, s = nl.fit[[lpen]]))[-1]
@@ -127,6 +140,7 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       ah.dle <- unname(dl.fit[['alpha']])
       nr.dle <- length(dl.fit[['coefficients.reg']]) - 1
       aux <- names(dl.fit[['coefficients.reg']][2:(nr.dle + 1)])
+      eux <- substr(aux[grep('^xx', aux)], 3, nchar(aux[grep('^xx', aux)]))
       dle.model <- substr(aux, 2, nchar(aux))
       fp.dle <- sum(! dle.model %in% orc.model)
       fn.dle <- sum(! orc.model %in% dle.model)
@@ -134,9 +148,11 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       il.dle <- diff(range(ci.dle))
       cg.dle <- inside(a, ci.dle)
       pd.dle <- !inside(0, ci.dle)
+      pc.dle <- sum(conf.idx %in% as.numeric(eux)) / nc
+      pi.dle <- sum(inst.idx %in% as.numeric(eux)) / ni
     } else {
-      ah.nle <- nr.nle <- fp.nle <- fn.nle <- il.nle <- cg.nle <- pd.nle <- NA
-      ah.dle <- nr.dle <- fp.dle <- fn.dle <- il.dle <- cg.dle <- pd.dle <- NA
+      ah.nle <- nr.nle <- fp.nle <- fn.nle <- il.nle <- cg.nle <- pd.nle <- pc.nle <- pi.nle <- NA
+      ah.dle <- nr.dle <- fp.dle <- fn.dle <- il.dle <- cg.dle <- pd.dle <- pc.dle <- pi.dle <- NA
     }
 
     ############################################################################
@@ -160,37 +176,55 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
         familyX = 'gaussian', familyY = 'gaussian', omega = Inf,
         num_its = 5e3, burnM = 5e2, burnB = 5e2, thin = 1), silent = TRUE)
       if (class(bac.fitI) == 'try-error') {
-        ah.bc1 <- nr.bc1 <- fp.bc1 <- fn.bc1 <- il.bc1 <- cg.bc1 <- pd.bc1 <- NA
-        ah.bcT <- nr.bcT <- fp.bcT <- fn.bcT <- il.bcT <- cg.bcT <- pd.bcT <- NA
-        ah.bcI <- nr.bcI <- fp.bcI <- fn.bcI <- il.bcI <- cg.bcI <- pd.bcI <- NA
+        ah.bc1 <- nr.bc1 <- fp.bc1 <- fn.bc1 <- il.bc1 <- cg.bc1 <- pd.bc1 <- pc.bc1 <- pi.bc1 <- NA
+        ah.bcT <- nr.bcT <- fp.bcT <- fn.bcT <- il.bcT <- cg.bcT <- pd.bcT <- pc.bcT <- pi.bcT <- NA
+        ah.bcI <- nr.bcI <- fp.bcI <- fn.bcI <- il.bcI <- cg.bcI <- pd.bcI <- pc.bcI <- pi.bcI <- NA
         sink(); unlink(paste(TMPDIR, 'bac_esborrar', r, '.txt', sep = ''))
       } else {
         if (only.bacInf == TRUE) {
-          bac.fit1 <- bac.fitI
+          bac.fit1 <- bac.fitT <- bac.fitI
         } else {
-          bac.fit1 <- bacr::bac(data = W, exposure = 'd', outcome = 'y',
+          bac.fit1 <- try(bacF(data = W, exposure = 'd', outcome = 'y',
             confounders = paste('V', 1:ncol(X), sep = ''), interactors = NULL,
             familyX = 'gaussian', familyY = 'gaussian', omega = 1, 
-            num_its = 5e3, burnM = 5e2, burnB = 5e2, thin = 1)
+            num_its = 5e3, burnM = 5e2, burnB = 5e2, thin = 1), silent = TRUE)
+          bac.fitT <- try(bacF(data = W, exposure = 'd', outcome = 'y',
+            confounders = paste('V', 1:ncol(X), sep = ''), interactors = NULL,
+            familyX = 'gaussian', familyY = 'gaussian', omega = 10, 
+            num_its = 5e3, burnM = 5e2, burnB = 5e2, thin = 1), silent = TRUE)
         }
 
         # Point estimates for each omega
         bac1 <- summary(bac.fit1)
         bacI <- summary(bac.fitI)
-        bacT <- NA
+        bacT <- summary(bac.fitT)
         sink(); unlink(paste(TMPDIR, 'bac_esborrar', r, '.txt', sep = ''))
         ci.bc1 <- bac1[['CI']]
         ci.bcI <- bacI[['CI']]
-        ci.bcT <- NA
+        ci.bcT <- bacT[['CI']]
 
         # Posterior average model size
         aux1a <- bac.fit1[['models']][[1]]
         aux2a <- bac.fit1[['models']][[2]] / sum(bac.fit1[['models']][[2]])
+        aux3a <- bac.fit1[['models']][[1]][, conf.idx]
+        aux4a <- bac.fit1[['models']][[1]][, inst.idx]
         nr.bc1 <- sum(rowSums(aux1a) * aux2a)
+        pc.bc1 <- sum(rowSums(aux3a) * aux2a) / nc
+        pi.bc1 <- sum(rowSums(aux4a) * aux2a) / ni
         aux1b <- bac.fitI[['models']][[1]]
         aux2b <- bac.fitI[['models']][[2]] / sum(bac.fitI[['models']][[2]])
+        aux3b <- bac.fitI[['models']][[1]][, conf.idx]
+        aux4b <- bac.fitI[['models']][[1]][, inst.idx]
         nr.bcI <- sum(rowSums(aux1b) * aux2b)
-        nr.bcT <- NA
+        pc.bcI <- sum(rowSums(aux3b) * aux2b) / nc
+        pi.bcI <- sum(rowSums(aux4b) * aux2b) / ni
+        aux1c <- bac.fitT[['models']][[1]]
+        aux2c <- bac.fitT[['models']][[2]] / sum(bac.fitT[['models']][[2]])
+        aux3c <- bac.fitT[['models']][[1]][, conf.idx]
+        aux4c <- bac.fitT[['models']][[1]][, inst.idx]
+        nr.bcT <- sum(rowSums(aux1c) * aux2c)
+        pc.bcT <- sum(rowSums(aux3c) * aux2c) / nc
+        pi.bcT <- sum(rowSums(aux4c) * aux2c) / ni
 
         # False positives and negatives
         ids1 <- apply(aux1a, 1, function(x) {
@@ -203,10 +237,18 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
           if (x[length(x)] != 0) { mid <- c('d1', mid) }
           return(mid)
         })
+        ids3 <- apply(aux1c, 1, function(x) {
+          mid <- paste('x', which(x[-length(x)] != 0), sep = '')
+          if (x[length(x)] != 0) { mid <- c('d1', mid) }
+          return(mid)
+        })
         fps1 <- unname(unlist(lapply(ids1, function(x) {
           sum(! x %in% orc.model)
         } )))
         fps2 <- unname(unlist(lapply(ids2, function(x) {
+          sum(! x %in% orc.model)
+        } )))
+        fps3 <- unname(unlist(lapply(ids3, function(x) {
           sum(! x %in% orc.model)
         } )))
         if (nrow(aux1a) == 1) {
@@ -229,26 +271,35 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
           fn.bcI <- sum(fns2 * aux2b)
           fp.bcI <- sum(fps2 * aux2b)
         }
-        fp.bcT <- NA
-        fn.bcT <- NA
+        if (nrow(aux1c) == 1) {
+          fn.bcT <- sum(! orc.model %in% ids3)
+          fp.bcT <- sum(fps3)
+        } else {
+          fns3 <- unname(unlist(lapply(ids3, function(x) {
+            sum(! orc.model %in% x)
+          } )))
+          fn.bcT <- sum(fns3 * aux2c)
+          fp.bcT <- sum(fps3 * aux2c)
+        }
 
         # Summary
         ah.bc1 <- bac1[['posterior.mean']]
         ah.bcI <- bacI[['posterior.mean']]
-        ah.bcT <- NA
+        ah.bcT <- bacT[['posterior.mean']]
         cg.bc1 <- inside(a, ci.bc1)
         cg.bcI <- inside(a, ci.bcI)
-        cg.bcT <- NA
+        cg.bcT <- inside(a, ci.bcT)
         il.bc1 <- diff(range(ci.bc1))
         il.bcI <- diff(range(ci.bcI))
-        il.bcT <- NA
+        il.bcT <- diff(range(ci.bcT))
         pd.bc1 <- !inside(0, ci.bc1)
         pd.bcI <- !inside(0, ci.bcI)
-        pd.bcT <- NA
+        pd.bcT <- !inside(0, ci.bcT)
 
         # If running two BACs is too much
         if (only.bacInf == TRUE) {
-          ah.bc1 <- nr.bc1 <- fp.bc1 <- fn.bc1 <- il.bc1 <- cg.bc1 <- pd.bc1 <- NA        
+          ah.bc1 <- nr.bc1 <- fp.bc1 <- fn.bc1 <- il.bc1 <- cg.bc1 <- pd.bc1 <- pc.bc1 <- pi.bc1 <- NA        
+          ah.bcT <- nr.bcT <- fp.bcT <- fn.bcT <- il.bcT <- cg.bcT <- pd.bcT <- pc.bcT <- pi.bcT <- NA        
         }
       }  
     } else if (do.bac == TRUE & bac.pkg == 'BACprior') {
@@ -302,10 +353,14 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       pd.bc1 <- !inside(0, ci.bc1)
       pd.bcT <- !inside(0, ci.bcT)
       pd.bcI <- !inside(0, ci.bcI)
+
+      # LEFT TO DO IF NECESSARY
+      pc.bc1 <- pc.bcT <- pc.bcI <- NA
+      pi.bc1 <- pi.bcT <- pi.bcI <- NA     
     } else {
-      ah.bc1 <- nr.bc1 <- fp.bc1 <- fn.bc1 <- il.bc1 <- cg.bc1 <- pd.bc1 <- NA
-      ah.bcT <- nr.bcT <- fp.bcT <- fn.bcT <- il.bcT <- cg.bcT <- pd.bcT <- NA
-      ah.bcI <- nr.bcI <- fp.bcI <- fn.bcI <- il.bcI <- cg.bcI <- pd.bcI <- NA
+      ah.bc1 <- nr.bc1 <- fp.bc1 <- fn.bc1 <- il.bc1 <- cg.bc1 <- pd.bc1 <- pc.bc1 <- pi.bc1 <- NA
+      ah.bcT <- nr.bcT <- fp.bcT <- fn.bcT <- il.bcT <- cg.bcT <- pd.bcT <- pc.bcT <- pi.bcT <- NA
+      ah.bcI <- nr.bcI <- fp.bcI <- fn.bcI <- il.bcI <- cg.bcI <- pd.bcI <- pc.bcI <- pi.bcI <- NA
     }
 
     ############################################################################
@@ -341,6 +396,7 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
     } else {
       ah.pcr <- nr.pcr <- fp.pcr <- fn.pcr <- il.pcr <- cg.pcr <- pd.pcr <- NA
     }
+    pc.pcr <- pi.pcr <- NA  # TO-DO if ever necessary
 
     ############################################################################
     # BMA on y
@@ -376,13 +432,31 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       fns2 <- unlist(lapply(naux2, function(x) { sum(! orc.model %in% x) }))
 
       nr.bm1 <- sum(unlist(lapply(
-        strsplit(as.character(aux1[, 1]), ','), length)) * aux1[, 3])
+        strsplit(as.character(aux1[, 1]), ','), length)) * aux1[, 'pp'])
       nr.bm2 <- sum(unlist(lapply(
-        strsplit(as.character(aux2[, 1]), ','), length)) * aux2[, 3])
-      fp.bm1 <- sum(fps1 * aux1[, 3])
-      fp.bm2 <- sum(fps2 * aux2[, 3])
-      fn.bm1 <- sum(fns1 * aux1[, 3])
-      fn.bm2 <- sum(fns2 * aux2[, 3])
+        strsplit(as.character(aux2[, 1]), ','), length)) * aux2[, 'pp'])
+      fp.bm1 <- sum(fps1 * aux1[, 'pp'])
+      fp.bm2 <- sum(fps2 * aux2[, 'pp'])
+      fn.bm1 <- sum(fns1 * aux1[, 'pp'])
+      fn.bm2 <- sum(fns2 * aux2[, 'pp'])
+
+      # Confounder and instrument detection
+      naux1b <- lapply(naux1, function(x) {
+        covs <- substr(x[grep('^x', x)], 2, nchar(x[grep('^x', x)]))
+        ansc <- sum(conf.idx %in% as.numeric(covs)) / nc
+        ansi <- sum(inst.idx %in% as.numeric(covs)) / ni
+        return(c(ansc, ansi))
+      })
+      naux2b <- lapply(naux2, function(x) {
+        covs <- substr(x[grep('^x', x)], 2, nchar(x[grep('^x', x)]))
+        ansc <- sum(conf.idx %in% as.numeric(covs)) / nc
+        ansi <- sum(inst.idx %in% as.numeric(covs)) / ni
+        return(c(ansc, ansi))
+      })
+      pc.bm1 <- sum(unlist(lapply(naux1b, '[[', 1)) * aux1[, 'pp'])
+      pc.bm2 <- sum(unlist(lapply(naux2b, '[[', 1)) * aux2[, 'pp'])
+      pi.bm1 <- sum(unlist(lapply(naux1b, '[[', 2)) * aux1[, 'pp'])
+      pi.bm2 <- sum(unlist(lapply(naux2b, '[[', 2)) * aux2[, 'pp'])
 
       # Inclusion indicators
       pr.eta <- c(eta / 2, 1 - eta / 2)
@@ -406,8 +480,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       t3.bm1 <- as.numeric(unname(bms1[['margpp']][1] >= 0.95))
       t3.bm2 <- as.numeric(unname(bms2[['margpp']][1] >= 0.95))
     } else {
-      ah.bm1 <- nr.bm1 <- fp.bm1 <- fn.bm1 <- il.bm1 <- cg.bm1 <- pd.bm1 <- NA
-      ah.bm2 <- nr.bm2 <- fp.bm2 <- fn.bm2 <- il.bm2 <- cg.bm2 <- pd.bm2 <- NA
+      ah.bm1 <- nr.bm1 <- fp.bm1 <- fn.bm1 <- il.bm1 <- cg.bm1 <- pd.bm1 <- pc.bm1 <- pi.bm1 <- NA
+      ah.bm2 <- nr.bm2 <- fp.bm2 <- fn.bm2 <- il.bm2 <- cg.bm2 <- pd.bm2 <- pc.bm2 <- pi.bm2 <- NA
       t1.bm1 <- t1.bm2 <- t2.bm1 <- t2.bm2 <- t3.bm1 <- t3.bm2 <- NA
     }
 
@@ -437,6 +511,7 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
     } else {
       ah.ssl <- nr.ssl <- fp.ssl <- fn.ssl <- il.ssl <- cg.ssl <- pd.ssl <- NA
     }
+    pc.ssl <- pi.ssl <- NA  # TO-DO if ever necessary
 
     ############################################################################
     # Our new method (using Expectation Propagation)
@@ -464,6 +539,16 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       fp.nmA <- sum(fps * aux[, 2])
       fn.nmA <- sum(fns * aux[, 2])
 
+      # Confounder and instrument detection
+      naux1 <- lapply(naux, function(x) {
+        covs <- substr(x[grep('^x', x)], 2, nchar(x[grep('^x', x)]))
+        ansc <- sum(conf.idx %in% as.numeric(covs)) / nc
+        ansi <- sum(inst.idx %in% as.numeric(covs)) / ni
+        return(c(ansc, ansi))
+      })
+      pc.nmA <- sum(unlist(lapply(naux1, '[[', 1)) * aux[, 'pp'])
+      pi.nmA <- sum(unlist(lapply(naux1, '[[', 2)) * aux[, 'pp'])
+
       # Numerical summaries (NLP)
       pr.eta <- c(eta / 2, 1 - eta / 2)
       noms <- paste(100 * pr.eta, '%', sep = '')
@@ -482,6 +567,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       fp.nmB <- fp.nmA
       fn.nmB <- fn.nmA
       pd.nmB <- pd.nmA
+      pc.nmB <- pc.nmA
+      pi.nmB <- pi.nmA
 
       # MAP model
       mapA <- as.character(nme.fit[['pprob']][1, 1])
@@ -489,8 +576,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       t2.nmA <- as.numeric(unname(nme.fit[['mpprob']][1] >= 0.5))
       t3.nmA <- as.numeric(unname(nme.fit[['mpprob']][1] >= 0.95))      
     } else {
-      ah.nmA <- nr.nmA <- fp.nmA <- fn.nmA <- il.nmA <- cg.nmA <- pd.nmA <- NA
-      ah.nmB <- nr.nmB <- fp.nmB <- fn.nmB <- il.nmB <- cg.nmB <- pd.nmB <- NA
+      ah.nmA <- nr.nmA <- fp.nmA <- fn.nmA <- il.nmA <- cg.nmA <- pd.nmA <- pc.nmA <- pi.nmA <- NA
+      ah.nmB <- nr.nmB <- fp.nmB <- fn.nmB <- il.nmB <- cg.nmB <- pd.nmB <- pc.nmB <- pi.nmB <- NA
       th0.ep <- th1.ep <- NA
       t1.nmA <- t2.nmA <- t3.nmA <- NA
     }
@@ -528,6 +615,16 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       fp.n2A <- sum(fps * aux[, 2])
       fn.n2A <- sum(fns * aux[, 2])
 
+      # Confounder and instrument detection
+      naux1 <- lapply(naux, function(x) {
+        covs <- substr(x[grep('^x', x)], 2, nchar(x[grep('^x', x)]))
+        ansc <- sum(conf.idx %in% as.numeric(covs)) / nc
+        ansi <- sum(inst.idx %in% as.numeric(covs)) / ni
+        return(c(ansc, ansi))
+      })
+      pc.n2A <- sum(unlist(lapply(naux1, '[[', 1)) * aux[, 'pp'])
+      pi.n2A <- sum(unlist(lapply(naux1, '[[', 2)) * aux[, 'pp'])
+
       # Numerical summaries (NLP)
       noms <- paste(100 * c(eta / 2, 1 - eta / 2), '%', sep = '')
       ah.n2A <- nme.fit2[['teff.nlp']]
@@ -545,6 +642,8 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       fp.n2B <- fp.n2A
       fn.n2B <- fn.n2A
       pd.n2B <- pd.n2A
+      pc.n2B <- pc.n2A
+      pi.n2B <- pi.n2A
 
       # MAP model
       mapB <- as.character(nme.fit2[['pprob']][1, 1])
@@ -552,20 +651,32 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
       t2.nmB <- as.numeric(unname(nme.fit2[['mpprob']][1] >= 0.5))
       t3.nmB <- as.numeric(unname(nme.fit2[['mpprob']][1] >= 0.95))      
     } else {
-      ah.n2A <- nr.n2A <- fp.n2A <- fn.n2A <- il.n2A <- cg.n2A <- pd.n2A <- NA
-      ah.n2B <- nr.n2B <- fp.n2B <- fn.n2B <- il.n2B <- cg.n2B <- pd.n2B <- NA
+      ah.n2A <- nr.n2A <- fp.n2A <- fn.n2A <- il.n2A <- cg.n2A <- pd.n2A <- pc.n2A <- pi.n2A <- NA
+      ah.n2B <- nr.n2B <- fp.n2B <- fn.n2B <- il.n2B <- cg.n2B <- pd.n2B <- pc.n2A <- pi.n2A <- NA
       th0.eb <- th1.eb <- NA
       t1.nmB <- t2.nmB <- t3.nmB <- NA
     }
 
     ############################################################################
     # ACPME
-    ah.acm <- nr.acm <- fp.acm <- fn.acm <- il.acm <- cg.acm <- pd.acm <- NA
+    ah.acm <- nr.acm <- fp.acm <- fn.acm <- il.acm <- cg.acm <- pd.acm <- pc.acm <- pi.acm <- NA
+    ah.ac1 <- nr.ac1 <- fp.ac1 <- fn.ac1 <- il.ac1 <- cg.ac1 <- pd.ac1 <- pc.ac1 <- pi.ac1 <- NA
+    ah.ac2 <- nr.ac2 <- fp.ac2 <- fn.ac2 <- il.ac2 <- cg.ac2 <- pd.ac2 <- pc.ac2 <- pi.ac2 <- NA
     if (do.acm == TRUE) {
       # Run method
       sink(file = paste(TMPDIR, 'tmp_acpme.txt', sep = ''))  # No silent option
-      acm.fit <- try(acpme(y = y, Z = d, C = X, niter = 1e4), silent = TRUE)
+      acm.fit <- try(
+        regimes::acpme(y = y, Z = d, C = X, niter = 1e4, pen.type = 'eigen'),
+        silent = TRUE)
       #acm.fit <- regimes::acpme(y = y, Z = d, C = X, niter = 1e4)
+      if (acpme.onlyDEF == FALSE) {
+        ac1.fit <- try(
+          regimes::acpme(y = y, Z = d, C = X, niter = 1e4, pen.type = 'correlation'),
+          silent = TRUE)
+        ac2.fit <- try(
+          regimes::acpme(y = y, Z = d, C = X, niter = 1e4, pen.type = 'projection'),
+          silent = TRUE)
+      }
       sink()
 
       if (class(acm.fit) != 'try-error') {
@@ -583,6 +694,10 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
           sum(! orc.idx %in% unname(which(x == 1)))
         ))
 
+        # Confounder and instrument detection
+        pc.acm <- mean(rowSums(acm.fit[['alpha']][, conf.idx]) / nc)
+        pi.acm <- mean(rowSums(acm.fit[['alpha']][, inst.idx]) / ni)
+
         # Inclusion indicators
         pr.eta <- c(eta / 2, 1 - eta / 2)
         ci.acm <- unname(apply(acm.fit[['beta']], 2, quantile, probs = pr.eta))
@@ -590,48 +705,124 @@ sim.teff <- function(a, bd, by, n, p, S, phid, phiy, N, do.bac = FALSE,
         cg.acm <- inside(a, ci.acm[, 1])
         pd.acm <- !inside(0, ci.acm[, 1])
       }
+      if (acpme.onlyDEF == FALSE) {
+        if (class(ac1.fit) != 'try-error') {
+          # BMA point estimate
+          ah.ac1 <- colMeans(ac1.fit[['beta']])
+
+          # Model size
+          orc.idx <- as.numeric(substr( orc.model[grep('x', orc.model)], 2,
+            nchar(orc.model[grep('x', orc.model)])))
+          nr.ac1 <- mean(rowSums(ac1.fit[['alpha']]))
+          fp.ac1 <- mean(apply(ac1.fit[['alpha']], 1, function(x)
+            sum(! unname(which(x == 1)) %in% orc.idx)
+          ))
+          fn.ac1 <- mean(apply(ac1.fit[['alpha']], 1, function(x)
+            sum(! orc.idx %in% unname(which(x == 1)))
+          ))
+
+          # Confounder and instrument detection
+          pc.ac1 <- mean(rowSums(ac1.fit[['alpha']][, conf.idx]) / nc)
+          pi.ac1 <- mean(rowSums(ac1.fit[['alpha']][, inst.idx]) / ni)
+
+          # Inclusion indicators
+          pr.eta <- c(eta / 2, 1 - eta / 2)
+          ci.ac1 <- unname(apply(ac1.fit[['beta']], 2, quantile, probs = pr.eta))
+          il.ac1 <- apply(ci.ac1, 2, function(x) { diff(range(x)) })
+          cg.ac1 <- inside(a, ci.ac1[, 1])
+          pd.ac1 <- !inside(0, ci.ac1[, 1])
+        }
+        if (class(ac2.fit) != 'try-error') {
+          # BMA point estimate
+          ah.ac2 <- colMeans(ac2.fit[['beta']])
+
+          # Model size
+          orc.idx <- as.numeric(substr( orc.model[grep('x', orc.model)], 2,
+            nchar(orc.model[grep('x', orc.model)])))
+          nr.ac2 <- mean(rowSums(ac2.fit[['alpha']]))
+          fp.ac2 <- mean(apply(ac2.fit[['alpha']], 1, function(x)
+            sum(! unname(which(x == 1)) %in% orc.idx)
+          ))
+          fn.ac2 <- mean(apply(ac2.fit[['alpha']], 1, function(x)
+            sum(! orc.idx %in% unname(which(x == 1)))
+          ))
+
+          # Confounder and instrument detection
+          pc.ac2 <- mean(rowSums(ac2.fit[['alpha']][, conf.idx]) / nc)
+          pi.ac2 <- mean(rowSums(ac2.fit[['alpha']][, inst.idx]) / ni)
+
+          # Inclusion indicators
+          pr.eta <- c(eta / 2, 1 - eta / 2)
+          ci.ac2 <- unname(apply(ac2.fit[['beta']], 2, quantile, probs = pr.eta))
+          il.ac2 <- apply(ci.ac2, 2, function(x) { diff(range(x)) })
+          cg.ac2 <- inside(a, ci.ac2[, 1])
+          pd.ac2 <- !inside(0, ci.ac2[, 1])
+        }
+      }
     }
 
     ############################################################################
     # Return results
     return(c(nc = nc,
-      ah.orc = ah.orc, cg.orc = cg.orc, il.orc = il.orc, nr.orc = nr.orc,
-      fp.orc = fp.orc, fn.orc = fn.orc, pd.orc = pd.orc,
-      ah.ore = ah.ore, cg.ore = cg.ore, il.ore = il.ore, nr.ore = nr.ore,
-      fp.ore = fp.ore, fn.ore = fn.ore, pd.ore = pd.ore,
-      ah.nle = ah.nle, cg.nle = cg.nle, il.nle = il.nle, nr.nle = nr.nle,
-      fp.nle = fp.nle, fn.nle = fn.nle, pd.nle = pd.nle,
-      ah.dle = ah.dle, cg.dle = cg.dle, il.dle = il.dle, nr.dle = nr.dle,
-      fp.dle = fp.dle, fn.dle = fn.dle, pd.dle = pd.dle,
-      ah.ssl = ah.ssl, cg.ssl = cg.ssl, il.ssl = il.ssl, nr.ssl = nr.ssl,
-      fp.ssl = fp.ssl, fn.ssl = fn.ssl, pd.ssl = pd.ssl,
-      ah.pcr = ah.pcr, cg.pcr = cg.pcr, il.pcr = il.pcr, nr.pcr = nr.pcr,
-      fp.pcr = fp.pcr, fn.pcr = fn.pcr, pd.pcr = pd.pcr,
-      ah.bc1 = ah.bc1, cg.bc1 = cg.bc1, il.bc1 = il.bc1, nr.bc1 = nr.bc1,
-      fp.bc1 = fp.bc1, fn.bc1 = fn.bc1, pd.bc1 = pd.bc1,
-      ah.bcT = ah.bcT, cg.bcT = cg.bcT, il.bcT = il.bcT, nr.bcT = nr.bcT,
-      fp.bcT = fp.bcT, fn.bcT = fn.bcT, pd.bcT = pd.bcT,
-      ah.bcI = ah.bcI, cg.bcI = cg.bcI, il.bcI = il.bcI, nr.bcI = nr.bcI,
-      fp.bcI = fp.bcI, fn.bcI = fn.bcI, pd.bcI = pd.bcI,
-      ah.acm = ah.acm, cg.acm = cg.acm, il.acm = il.acm, nr.acm = nr.acm,
-      fp.acm = fp.acm, fn.acm = fn.acm, pd.acm = pd.acm,
-      ah.bm1 = ah.bm1, cg.bm1 = cg.bm1, il.bm1 = il.bm1, nr.bm1 = nr.bm1,
-      fp.bm1 = fp.bm1, fn.bm1 = fn.bm1, pd.bm1 = pd.bm1,
-      ah.bm2 = ah.bm2, cg.bm2 = cg.bm2, il.bm2 = il.bm2, nr.bm2 = nr.bm2,
-      fp.bm2 = fp.bm2, fn.bm2 = fn.bm2, pd.bm2 = pd.bm2,
-      ah.nmA = ah.nmA, cg.nmA = cg.nmA, il.nmA = il.nmA, nr.nmA = nr.nmA,
-      fp.nmA = fp.nmA, fn.nmA = fn.nmA, pd.nmA = pd.nmA,
-      ah.nmB = ah.nmB, cg.nmB = cg.nmB, il.nmB = il.nmB, nr.nmB = nr.nmB,
-      fp.nmB = fp.nmB, fn.nmB = fn.nmB, pd.nmB = pd.nmB,
-      ah.n2A = ah.n2A, cg.n2A = cg.n2A, il.n2A = il.n2A, nr.n2A = nr.n2A,
-      fp.n2A = fp.n2A, fn.n2A = fn.n2A, pd.n2A = pd.n2A,
-      ah.n2B = ah.n2B, cg.n2B = cg.n2B, il.n2B = il.n2B, nr.n2B = nr.n2B,
-      fp.n2B = fp.n2B, fn.n2B = fn.n2B, pd.n2B = pd.n2B,
-      th0.ep = th0.ep, th1.ep = th1.ep, th0.eb = th0.eb, th1.eb = th1.eb,
-      t1.bm1 = t1.bm1, t2.bm1 = t2.bm1, t3.bm1 = t3.bm1,
-      t1.bm2 = t1.bm2, t2.bm2 = t2.bm2, t3.bm2 = t3.bm2,
-      t1.nmA = t1.nmA, t2.nmA = t2.nmA, t3.nmA = t3.nmA,
-      t1.nmB = t1.nmB, t2.nmB = t2.nmB, t3.nmB = t3.nmB))
+      ah.orc = ah.orc, cg.orc = cg.orc, il.orc = il.orc,
+      nr.orc = nr.orc, fp.orc = fp.orc, fn.orc = fn.orc,
+      pd.orc = pd.orc, pc.orc = pc.orc, pi.orc = pi.orc,
+      ah.ore = ah.ore, cg.ore = cg.ore, il.ore = il.ore,
+      nr.ore = nr.ore, fp.ore = fp.ore, fn.ore = fn.ore,
+      pd.ore = pd.ore, pc.ore = pc.ore, pi.ore = pi.ore,
+      ah.nle = ah.nle, cg.nle = cg.nle, il.nle = il.nle,
+      nr.nle = nr.nle, fp.nle = fp.nle, fn.nle = fn.nle,
+      pd.nle = pd.nle, pc.nle = pc.nle, pi.nle = pi.nle,
+      ah.dle = ah.dle, cg.dle = cg.dle, il.dle = il.dle,
+      nr.dle = nr.dle, fp.dle = fp.dle, fn.dle = fn.dle,
+      pd.dle = pd.dle, pc.dle = pc.dle, pi.dle = pi.dle,
+      ah.ssl = ah.ssl, cg.ssl = cg.ssl, il.ssl = il.ssl,
+      nr.ssl = nr.ssl, fp.ssl = fp.ssl, fn.ssl = fn.ssl,
+      pd.ssl = pd.ssl, pc.ssl = pc.ssl, pi.ssl = pi.ssl,
+      ah.pcr = ah.pcr, cg.pcr = cg.pcr, il.pcr = il.pcr,
+      nr.pcr = nr.pcr, fp.pcr = fp.pcr, fn.pcr = fn.pcr,
+      pd.pcr = pd.pcr, pc.pcr = pc.pcr, pi.pcr = pi.pcr,
+      ah.bc1 = ah.bc1, cg.bc1 = cg.bc1, il.bc1 = il.bc1,
+      nr.bc1 = nr.bc1, fp.bc1 = fp.bc1, fn.bc1 = fn.bc1,
+      pd.bc1 = pd.bc1, pc.bc1 = pc.bc1, pi.bc1 = pi.bc1,
+      ah.bcT = ah.bcT, cg.bcT = cg.bcT, il.bcT = il.bcT,
+      nr.bcT = nr.bcT, fp.bcT = fp.bcT, fn.bcT = fn.bcT,
+      pd.bcT = pd.bcT, pc.bcT = pc.bcT, pi.bcT = pi.bcT,
+      ah.bcI = ah.bcI, cg.bcI = cg.bcI, il.bcI = il.bcI,
+      nr.bcI = nr.bcI, fp.bcI = fp.bcI, fn.bcI = fn.bcI,
+      pd.bcI = pd.bcI, pc.bcI = pc.bcI, pi.bcI = pi.bcI,
+      ah.acm = ah.acm, cg.acm = cg.acm, il.acm = il.acm,
+      nr.acm = nr.acm, fp.acm = fp.acm, fn.acm = fn.acm,
+      pd.acm = pd.acm, pc.acm = pc.acm, pi.acm = pi.acm,
+      ah.ac1 = ah.ac1, cg.ac1 = cg.ac1, il.ac1 = il.ac1,
+      nr.ac1 = nr.ac1, fp.ac1 = fp.ac1, fn.ac1 = fn.ac1,
+      pd.ac1 = pd.ac1, pc.ac1 = pc.ac1, pi.ac1 = pi.ac1,
+      ah.ac2 = ah.ac2, cg.ac2 = cg.ac2, il.ac2 = il.ac2,
+      nr.ac2 = nr.ac2, fp.ac2 = fp.ac2, fn.ac2 = fn.ac2,
+      pd.ac2 = pd.ac2, pc.ac2 = pc.ac2, pi.ac2 = pi.ac2,
+      ah.bm1 = ah.bm1, cg.bm1 = cg.bm1, il.bm1 = il.bm1,
+      nr.bm1 = nr.bm1, fp.bm1 = fp.bm1, fn.bm1 = fn.bm1,
+      pd.bm1 = pd.bm1, pc.bm1 = pc.bm1, pi.bm1 = pi.bm1,
+      ah.bm2 = ah.bm2, cg.bm2 = cg.bm2, il.bm2 = il.bm2,
+      nr.bm2 = nr.bm2, fp.bm2 = fp.bm2, fn.bm2 = fn.bm2,
+      pd.bm2 = pd.bm2, pc.bm2 = pc.bm2, pi.bm2 = pi.bm2,
+      ah.nmA = ah.nmA, cg.nmA = cg.nmA, il.nmA = il.nmA,
+      nr.nmA = nr.nmA, fp.nmA = fp.nmA, fn.nmA = fn.nmA,
+      pd.nmA = pd.nmA, pc.nmA = pc.nmA, pi.nmA = pi.nmA,
+      ah.nmB = ah.nmB, cg.nmB = cg.nmB, il.nmB = il.nmB,
+      nr.nmB = nr.nmB, fp.nmB = fp.nmB, fn.nmB = fn.nmB,
+      pd.nmB = pd.nmB, pc.nmB = pc.nmB, pi.nmB = pi.nmB,
+      ah.n2A = ah.n2A, cg.n2A = cg.n2A, il.n2A = il.n2A,
+      nr.n2A = nr.n2A, fp.n2A = fp.n2A, fn.n2A = fn.n2A,
+      pd.n2A = pd.n2A, pc.n2A = pc.n2A, pi.n2A = pi.n2A,
+      ah.n2B = ah.n2B, cg.n2B = cg.n2B, il.n2B = il.n2B,
+      nr.n2B = nr.n2B, fp.n2B = fp.n2B, fn.n2B = fn.n2B,
+      pd.n2B = pd.n2B, pc.n2B = pc.n2B, pi.n2B = pi.n2B,
+      th0.ep = th0.ep, th1.ep = th1.ep, th0.eb = th0.eb,
+      th1.eb = th1.eb, t1.bm1 = t1.bm1, t2.bm1 = t2.bm1,
+      t3.bm1 = t3.bm1, t1.bm2 = t1.bm2, t2.bm2 = t2.bm2,
+      t3.bm2 = t3.bm2, t1.nmA = t1.nmA, t2.nmA = t2.nmA,
+      t3.nmA = t3.nmA, t1.nmB = t1.nmB, t2.nmB = t2.nmB, t3.nmB = t3.nmB))
   }; cat(' | Done.\n')
 
   # Finish
@@ -1105,4 +1296,3 @@ sim.teff.mt <- function(a, n, p, S, phiy, phid, N, do.bac = FALSE,
   return(invisible(sim))
 }; sim.teff.mt.rand <- compiler::cmpfun(sim.teff.mt)
 # END OF SCRIPT
-
