@@ -66,6 +66,10 @@ After loading the data and formatting it correctly, we render both panels of Fig
 
 Finally, Figure 4 (l. 111 onwards) is rendered using the function min.twoway.boxplot (LEFT panel), which is a customized boxplot, while the right panel is constructed directly in the script (l. 146-170), plotting state-level point estimates and CIs for 2010 and 2019.
 
+# SCRIPT: 07_cps_figures.R
+
+This script produces all tables and results for the abortion and crime study.
+
 --------------------------------------------------------------------------------
 
 # SCRIPT: functions/functions_cps.R

@@ -1,5 +1,6 @@
 ################################################################################
 # source('~/Desktop/year3/bma_teff/v16/syntax/00_start.R')
+# source('/no_backup/jferrer/mtorrens/stats/cil_article/source/00_start.R')
 # source(paste(SRCDIR, '01_paper_simulations.R', sep = ''))
 ################################################################################
 
@@ -18,7 +19,7 @@ do.nme <- TRUE  # New method (EP version)
 do.nm2 <- TRUE  # New method (EB version)
 
 # Number of cores used in the simulations (override manually)
-ncor <- 8
+ncor <- 6
 #ncor <- parallel::detectCores() - 1
 
 # Number of simulated datasets on each run
@@ -29,10 +30,10 @@ N <- 250
 # SETUPS
 # Status: (P) Pending; (U) Unfinished; (R) Running; (D) Done
 ################################################################################
-run00 <- FALSE  # (D) 0: [ST] n =  50; p+T =  25; a = 1  ; p_y = p_d = 6
-run01 <- FALSE  # (D) 1: [ST] n = 100; p+T =  50; a = 1  ; p_y = p_d = 6
-run02 <- FALSE  # (D) 2: [ST] n = 100; p+T =  50; a = 1/3; p_y = p_d = 6
-run03 <- FALSE  # (D) 3: [ST] n = 100; p+T =  50; a = 0  ; p_y = p_d = 6
+run00 <- TRUE   # (D) 0: [ST] n =  50; p+T =  25; a = 1  ; p_y = p_d = 6
+run01 <- TRUE   # (D) 1: [ST] n = 100; p+T =  50; a = 1  ; p_y = p_d = 6
+run02 <- TRUE   # (D) 2: [ST] n = 100; p+T =  50; a = 1/3; p_y = p_d = 6
+run03 <- TRUE   # (D) 3: [ST] n = 100; p+T =  50; a = 0  ; p_y = p_d = 6
 run04 <- FALSE  # (D) 4: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 6
 run05 <- FALSE  # (D) 5: [ST] n = 100; p+T = 200; a = 1  ; p_y = p_d = 6
 run06 <- FALSE  # (D) 6: [ST] n = 100; p+T = 100; a = 1  ; p_y = p_d = 18
@@ -52,7 +53,8 @@ if (run00 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   th.prior <- 'unif'
   beta.prior <- 'nlp'
   bma.mprior <- 'bbin'
-  only.bacInf <- TRUE
+  only.bacInf <- FALSE
+  acpme.onlyDEF <- FALSE
 
   # Setup
   cat('** RUNNING: SETUP 0\n')
@@ -68,9 +70,9 @@ if (run00 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       bd = c(rep(0L, k - 1), ones, rep(0L, p - k + 1 - length(ones))),
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
-      bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
-      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
+      bac.pkg = bac.pkg, only.bacInf = only.bacInf, acpme.onlyDEF = acpme.onlyDEF,
+      do.bac = do.bac, do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl,
+      do.ndl = do.ndl, do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -104,7 +106,8 @@ if (run01 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   th.prior <- 'unif'
   beta.prior <- 'nlp'
   bma.mprior <- 'bbin'
-  only.bacInf <- TRUE
+  only.bacInf <- FALSE
+  acpme.onlyDEF <- FALSE
 
   # Setup
   cat('** RUNNING: SETUP 1\n')
@@ -120,9 +123,9 @@ if (run01 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       bd = c(rep(0L, k - 1), ones, rep(0L, p - k + 1 - length(ones))),
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
-      bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
-      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
+      bac.pkg = bac.pkg, only.bacInf = only.bacInf, acpme.onlyDEF = acpme.onlyDEF,
+      do.bac = do.bac, do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl,
+      do.ndl = do.ndl, do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -156,7 +159,8 @@ if (run02 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   th.prior <- 'unif'
   beta.prior <- 'nlp'
   bma.mprior <- 'bbin'
-  only.bacInf <- TRUE
+  only.bacInf <- FALSE
+  acpme.onlyDEF <- FALSE
 
   # Setup
   cat('** RUNNING: SETUP 2\n')
@@ -172,9 +176,9 @@ if (run02 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       bd = c(rep(0L, k - 1), ones, rep(0L, p - k + 1 - length(ones))),
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
-      bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
-      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
+      bac.pkg = bac.pkg, only.bacInf = only.bacInf, acpme.onlyDEF = acpme.onlyDEF,
+      do.bac = do.bac, do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl,
+      do.ndl = do.ndl, do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -208,7 +212,8 @@ if (run03 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
   th.prior <- 'unif'
   beta.prior <- 'nlp'
   bma.mprior <- 'bbin'
-  only.bacInf <- TRUE
+  only.bacInf <- FALSE
+  acpme.onlyDEF <- FALSE
 
   # Setup
   cat('** RUNNING: SETUP 3\n')
@@ -224,9 +229,9 @@ if (run03 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
       bd = c(rep(0L, k - 1), ones, rep(0L, p - k + 1 - length(ones))),
       N = N, ncores = ncor, th.prior = th.prior, mod1 = mod1, R = 1e4,
       max.mod = Inf, bma.mprior = bma.mprior, beta.prior = beta.prior,
-      bac.pkg = bac.pkg, only.bacInf = only.bacInf, do.bac = do.bac,
-      do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl, do.ndl = do.ndl,
-      do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
+      bac.pkg = bac.pkg, only.bacInf = only.bacInf, acpme.onlyDEF = acpme.onlyDEF,
+      do.bac = do.bac, do.acm = do.acm, do.bma = do.bma, do.ssl = do.ssl,
+      do.ndl = do.ndl, do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)
 
     # Save partial progress
     fin <- paste(DATDIR, 'psim_', pstar - k + 1, 'of', pstar, term, sep = '')
@@ -484,7 +489,7 @@ if (run08 == TRUE & (! file.exists(file.out) | force.sim == TRUE)) {
     now <- paste('[', Sys.time(), ' CET]', sep = '')
     cat(now, ' Batch: (nt = ', nt, '); -- ', sep = '')
     sim <- sim.teff.mt(a = a, n = n, p = p, S = diag(p), phiy = 1,
-      phid = rep(1, length(a)), N = N, ncores = 3, th.prior = 'unif',
+      phid = rep(1, length(a)), N = N, ncores = 6, th.prior = 'unif',
       mod1 = 'lasso_bic', max.mod = Inf, R = 1e4, bma.mprior = 'bbin',
       beta.prior = 'nlp', do.bac = do.acm, do.bma = do.bma, do.ssl = do.ssl,
       do.ndl = do.ndl, do.pcr = do.pcr, do.nme = do.nme, do.nm2 = do.nm2)

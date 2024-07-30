@@ -480,8 +480,34 @@ state <- cps[, 'state']
 # Keep year for year-level analysis later
 year <- cps[, 'year']
 
+################################################################################
+# In v17+, we suppress other problematic variables (effect rather than cause)
+################################################################################
+# CRITICAL
+out.cols <- c('logfedtaxac', 'logfica', 'logstataxac', 'logproptaxincwageinc')
+X <- X[, -which(colnames(X) %in% out.cols)]
+
+# OTHER POTENTIAL COLLIDERS
+out.cols <- c('haseitcred', 'propoi_incbus', 'propoi_oincbus', 'propoi_inceduc',
+  'propoi_incfarm', 'propoi_incunemp', 'propoi_incretir', 'propoi_incchild',
+  'propoi_incasist', 'propoi_oincfarm', 'propoi_incssi', 'propoi_incvet',
+  'propoi_incsurv', 'propoi_incrent', 'propoi_incwkcom', 'propoi_incwelfr',
+  'propoi_incother', 'propoi_incint', 'propoi_incdivid', 'propoi_incss',
+  'propoi_incdisab', 'propoi_incdisa1')
+X <- X[, -which(colnames(X) %in% out.cols)]
+
+# OTHER POSSIBLE EFFECTS RATHER THAN CAUSE
+X[, 'logctccrd'] <- as.numeric(X[, 'logctccrd'] != 0)
+out.cols <- c('rentsub', 'lunchsub', 'pubhous', 'stampno', 'foodstmp',
+  'frelunch', 'logfoodstamp', 'logspmlunch', 'taxstatus_nonfiler', 'heatsub',
+  'stampmo', 'logotherpersincome', 'logotherfamincome',
+  colnames(X)[grep('spm', colnames(X))])  # All SPM stuff
+X <- X[, -which(colnames(X) %in% out.cols)]
+
+################################################################################
 # Print results
-cat('* Design matrix dimension:', nrow(X), 'x', ncol(X), '\n')
+cat('* Design matrix dimension:', nrow(X), 'x', ncol(X), '\n')# Print results
+cat('* Design matrix dimension:', nrow(X), 'x', ncol(X), '\n')  # 615366 x 240
 
 ################################################################################
 # Save data

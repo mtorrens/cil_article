@@ -1,6 +1,6 @@
 ################################################################################
 # Script: 00_start.R
-# source('~/Desktop/year3/bma_teff/v16/syntax/00_start.R')
+# source('~/Desktop/stats/cil_article/source/00_start.R')
 ################################################################################
 
 ################################################################################
@@ -11,23 +11,23 @@ if (! 'silent' %in% ls()) { silent <- FALSE }  # Set TRUE to run silently
 if (! 'runALL' %in% ls()) { runALL <- FALSE }  # Set TRUE to run ALL scripts
 
 # Version control
-vN <- 'v16'
-vR <- 'xvi'
+vN <- 'v18'
+vR <- 'xviii'
 
 # Initialize project
 if (silent == FALSE) {
   cat('** Initialising...
 * Project:  Treatment Effect Estimation with Confounder Importance Learning
 * Author:   Miquel Torrens (c)
-* Version:  ', vR, ' (September 2021)
+* Version:  ', vR, ' (February 2023)
 * Packages: mvtnorm, parallel, doMC, glmnet, mombf, hdm, BACprior, bacr,
             selectiveInference, statmod, compiler, regimes [NON-CRAN],
             pracma [NOT LOADED], plotly, ipumsr\n', sep = '')
 }
 
 # Paths
-PATH <- paste('~/Desktop/year3/bma_teff/', vN, '/', sep = '')  #Change to LOCAL
-SRCDIR <- paste(PATH, 'syntax/', sep = '')
+PATH <- paste('/no_backup/jferrer/mtorrens/stats/cil_article/', sep = '')  #Change to LOCAL
+SRCDIR <- paste(PATH, 'source/', sep = '')
 DATDIR <- paste(PATH, 'data/', sep = '')
 OUTDIR <- paste(PATH, 'output/', sep = '')
 TMPDIR <- paste(PATH, 'temp/', sep = '')
@@ -70,7 +70,8 @@ req[11] <- require('regimes')  # ACPME by Wilson et al. (2018) [NON-CRAN]
 req[12] <- require('compiler')  # Compile functions
 req[13] <- require('plotly')  # Contour/level plots
 req[14] <- require('ipumsr')  # CPS data loading
-#req[15] <- require('pracma')  #For pseudo-inverse computation
+req[15] <- require('xtable')  # Print in LaTeX format
+#req[16] <- require('pracma')  #For pseudo-inverse computation
 if (any(! req == TRUE)) {
   warning('(!) NOT all packages could be loaded; review dependency list.')
   warning('Non-installed required packages need to be installed manually.')
@@ -114,6 +115,8 @@ if (runALL == TRUE) {
   cat('** SCRIPT: 05_cps_analysis.R\n')
   source(paste(SRCDIR, '05_cps_analysis.R', sep = ''))
   cat('** SCRIPT: 06_cps_figures.R\n')
+  source(paste(SRCDIR, '06_cps_figures.R', sep = ''))
+  cat('** SCRIPT: 07_abortion_analysis.R\n')
   source(paste(SRCDIR, '06_cps_figures.R', sep = ''))
 }
 # END OF SCRIPT

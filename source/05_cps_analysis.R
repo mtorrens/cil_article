@@ -1,5 +1,6 @@
 ################################################################################
-# source('~/Desktop/year3/bma_teff/v16/syntax/00_start.R')
+# source('~/Desktop/stats/cil_article/source/00_start.R')
+# source('/no_backup/jferrer/mtorrens/stats/cil_article/source/00_start.R')
 # source(paste(SRCDIR, '05_cps_analysis.R', sep = ''))
 ################################################################################
 
@@ -9,7 +10,8 @@
 # Global parameters
 eta <- 0.05  # Significance level
 lpen <- 'lambda.min'  # LASSO type penalty
-force <- FALSE  # Force execution even if file exists
+force <- TRUE  # Force execution even if file exists
+ncores <- 1  # Otherwise might run out of memory in cluster
 
 # Load data
 file.in <- paste(DATDIR, 'cps/cps_model_data_year.RData', sep = '')
@@ -75,7 +77,8 @@ st.dum <- st.dum[, -which(colnames(st.dum) == 'stCA')]  # Ref. CA
 fout <- paste(DATDIR, 'cps_stateints_y2y_post_FULL.RData', sep = '')
 if (! file.exists(fout) | force == TRUE) {
   #registerDoMC(cores = detectCores() - 1)
-  registerDoMC(cores = 2)
+  #registerDoMC(cores = 2)
+  registerDoMC(cores = ncores)
   y2y.bmkP <- foreach(v = 1:length(years), .errorhandling = 'pass') %dopar% {
     # Choose year
     ye <- years[v]
@@ -132,6 +135,92 @@ if (! file.exists(fout) | force == TRUE) {
 } else {
   y2y.bmkP <- get(load(file = fout)); cat('Loaded file:', fout, '\n')  
 }; rm(fout)
+
+##############################################################################
+# Covariates with greatest variability between 2010 and 2019
+##############################################################################
+# Adapt design matrix
+so <- which(year %in% c('2010', '2019'))
+vo <- names(which(apply(X[so, ], 2, var) == 0))[-1]
+Ws <- cbind(y[so, ], D[so, ], X[so, -which(colnames(X) %in% vo)], st.dum[so, ])
+colnames(Ws)[1] <- 'y'
+
+ncats <- apply(Ws, 2, function(x) { length(table(x)) })
+# aux <- cbind.data.frame(names(sort(ncats)), sort(ncats))
+# colnames(aux) <- c('var', 'ncats')
+# rownames(aux) <- NULL
+# aux[213:237, ]
+pvals <- vars.type <- rep(NA, ncol(Ws))
+xvar <- as.numeric(year[so] == 2019)
+for (col in 1:ncol(Ws)) {
+  cat('\rvar:', col)
+  yvar <- Ws[, col]
+  if (var(Ws[, col]) > 0) {
+    if (ncats[col] > 2) {
+      fit <- lm(yvar ~ xvar)
+      pval <- -log10(summary(fit)[['coefficients']][2, 'Pr(>|t|)'])
+      #pval <- summary(fit)[['coefficients']][2, 'Pr(>|t|)']
+      var.type <- 'lm'
+    } else {
+      pval <- -log10(chisq.test(yvar, xvar)[['p.value']])
+      #pval <- chisq.test(yvar, xvar)[['p.value']]
+      var.type <- 'chisq'
+    }
+    pvals[col] <- pval
+    vars.type[col] <- var.type
+  }
+}; cat(' | done.\n')
+
+# Build output matrix
+res <- data.frame(covariate = colnames(Ws), var_type = vars.type, year_pval = pvals)
+res <- res[order(res[, ncol(res)], decreasing = TRUE), ]
+#res <- res[order(res[, ncol(res)]), ]
+res[, ncol(res) + 1] <- round(res[, ncol(res)], 5)
+#rownames(res) <- NULL
+
+# Select those covariates with stronger inter-year change
+sres <- res[which(res[, 'year_pval'] > -log10(0.05)), ]
+#sres <- res[which(res[, 'year_pval'] < 0.05), ]
+sres[, 'year_diff'] <- rep(NA, nrow(sres))
+sres[, 'value2010'] <- rep(NA, nrow(sres))
+xvar <- year[so]
+for (col in sres[, 'covariate']) {
+  who <- which(sres[, 'covariate'] == col)
+  cat('\r', who)
+  if (ncats[col] > 2) {
+    avgs <- tapply(Ws[, col], year[so], mean)
+    diff.avg <- unname(avgs['2019'] / avgs['2010'] - 1)
+    sres[who, 'year_diff'] <- diff.avg
+    sres[who, 'value2010'] <- avgs['2010']
+  } else {
+    tt <- table(Ws[, col], year[so])
+    pcts <- apply(tt, 2, function(x) { x / sum(x) })
+    diff.pct <- pcts[nrow(pcts), '2019'] - pcts[nrow(pcts), '2010']
+    sres[who, 'year_diff'] <- diff.pct
+    sres[who, 'value2010'] <- pcts[nrow(pcts), '2010']
+  }
+}
+sres[, 'pass'] <- abs(sres[, 'year_diff']) >= 0.05 & sres[, 'value2010'] > 0.05
+sres[, 'year_diff'] <- round(sres[, 'year_diff'], 3)
+sres[, 'value2010'] <- round(sres[, 'value2010'], 3)
+sres[, -4]
+sres[which(sres[, 'pass'] == TRUE), -4]
+
+#  Format
+sres[, 'var_type'] <- sapply(sres[, 'var_type'], function(x) {
+  switch(x, 'chisq' = 'binary', 'lm' = 'non-binary') })
+sres[, 'year_pval'] <- round(sres[, 'year_pval'], 1)
+# sres[, 'year_diff'] <- paste(
+#   sprintf('%01.1f', 100 * round(sres[, 'year_diff'], 3)), '%', sep = '')
+sres[, 'year_diff'] <- sprintf('%0.3f', round(sres[, 'year_diff'], 3))
+sres[, 'value2010'] <- sprintf('%0.3f', round(sres[, 'value2010'], 3))
+sres <- sres[which(sres[, 'pass'] == TRUE), c(1:3, 5:6)]
+colnames(sres) <- c('Covariate', 'Type', '$-log_{10} p$-value', 'Proportional change 2010–2019', 'Mean (2010)')
+rownames(sres) <- NULL
+
+# LaTeX formatted table
+print(xtable(sres, caption = 'caption text', label = 'tab:cps_y2y_diffs'),
+  include.rownames = FALSE)
 
 ##############################################################################
 # OTHER FUNCTIONALS USING POSTERIOR MODEL SAMPLES
@@ -259,7 +348,7 @@ if (! file.exists(fout) | force == TRUE) {
   # Add them to the design matrix
   X <- cbind(Xor, M)  # 123265 x 326
 
-  registerDoMC(cores = 2)
+  registerDoMC(cores = ncores)
   y2y.1hRP <- foreach(v = c(1, 10), .errorhandling = 'pass') %dopar% {
     # Choose year
     ye <- years[v]
@@ -324,7 +413,7 @@ if (! file.exists(fout) | force == TRUE) {
   # Add them to the design matrix
   X <- cbind(Xor, M)  # 123265 x 326
 
-  registerDoMC(cores = 2)
+  registerDoMC(cores = ncores)
   y2y.2hRP <- foreach(v = c(1, 10), .errorhandling = 'pass') %dopar% {
     # Choose year
     ye <- years[v]

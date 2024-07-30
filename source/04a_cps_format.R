@@ -1,4 +1,5 @@
 ################################################################################
+source('/no_backup/jferrer/mtorrens/stats/cil_article/source/00_start.R')
 # source('~/Desktop/year3/bma_teff/v16/syntax/00_start.R')
 # source(paste(SRCDIR, '04a_cps_format.R', sep = ''))
 ################################################################################

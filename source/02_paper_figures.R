@@ -222,6 +222,152 @@ plot.mtrand(y1, y2, y3, y4, alpha = 1, yrange = c(0.5, 12),
   xnom = 'Number of Treatments')
 dev.off(); cat('Printed figure:', figXp2, '\n')
 
+################################################################################
+# REST OF SUPPLEMENTARY FIGURES
+################################################################################
+# Figure: Decomposition of MSE in Fig. 1 (bias^2)
+figBA1.bias2.p1 <- paste(FIGDIR, 'fig1_rmsedecomp_bias2_left.pdf', sep = '')
+figBA1.bias2.p2 <- paste(FIGDIR, 'fig1_rmsedecomp_bias2_mid.pdf', sep = '')
+figBA1.bias2.p3 <- paste(FIGDIR, 'fig1_rmsedecomp_bias2_right.pdf', sep = '')
+#par(mfrow = c(1, 3), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+pdf(figBA1.bias2.p1, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res01, display = 'bias2', alpha = 1,
+  ylims = c(0, 0.14), add.legend = TRUE, legpos = 'topleft')
+dev.off(); cat('Printed figure:', figBA1.bias2.p1, '\n')
+pdf(figBA1.bias2.p2, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res02, display = 'bias2', alpha = 1/3,
+  ylims = c(0, 0.14), add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.bias2.p2, '\n')
+pdf(figBA1.bias2.p3, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res03, display = 'bias2', alpha = 0,
+  ylims = c(0, 0.14), add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.bias2.p3, '\n')
+
+# Figure: Decomposition of MSE in Fig. 1 (est. variance)
+figBA1.estvar.p1 <- paste(FIGDIR, 'fig1_rmsedecomp_estvar_left.pdf', sep = '')
+figBA1.estvar.p2 <- paste(FIGDIR, 'fig1_rmsedecomp_estvar_mid.pdf', sep = '')
+figBA1.estvar.p3 <- paste(FIGDIR, 'fig1_rmsedecomp_estvar_right.pdf', sep = '')
+pdf(figBA1.estvar.p1, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res01, display = 'variance', alpha = 1,
+  ylims = c(0, 0.2), add.legend = TRUE, legpos = 'topleft')
+dev.off(); cat('Printed figure:', figBA1.estvar.p1, '\n')
+pdf(figBA1.estvar.p2, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res02, display = 'variance', alpha = 1/3,
+  ylims = c(0, 0.2), add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.estvar.p2, '\n')
+pdf(figBA1.estvar.p3, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res03, display = 'variance', alpha = 0,
+  ylims = c(0, 0.2), add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.estvar.p3, '\n')
+
+# Figure: Sampling distribution of theta_1 in Fig. 1 (est. variance)
+figBA1.thbox.p1 <- paste(FIGDIR, 'fig1_theta1boxplot_left.pdf', sep = '')
+figBA1.thbox.p2 <- paste(FIGDIR, 'fig1_theta1boxplot_mid.pdf', sep = '')
+figBA1.thbox.p3 <- paste(FIGDIR, 'fig1_theta1boxplot_right.pdf', sep = '')
+pdf(figBA1.thbox.p1, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+boxplot(th1.eb ~ nc, data = res01, boxwex = 0.5, ylab = '', xlab = '',
+  outline = FALSE); abline(h = 0, lty = 3)#; grid()
+dev.off(); cat('Printed figure:', figBA1.thbox.p1, '\n')
+pdf(figBA1.thbox.p2, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+boxplot(th1.eb ~ nc, data = res02, boxwex = 0.5,
+  outline = FALSE); abline(h = 0, lty = 3)#; grid()
+dev.off(); cat('Printed figure:', figBA1.thbox.p2, '\n')
+pdf(figBA1.thbox.p3, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+boxplot(th1.eb ~ nc, data = res03, boxwex = 0.5,
+  outline = FALSE); abline(h = 0, lty = 3)#; grid()
+dev.off(); cat('Printed figure:', figBA1.thbox.p3, '\n')
+
+# Same plot but limited y-axis
+figBA1.thbox.p1 <- paste(FIGDIR, 'fig1_theta1boxplot_lim45_left.pdf', sep = '')
+figBA1.thbox.p2 <- paste(FIGDIR, 'fig1_theta1boxplot_lim45_mid.pdf', sep = '')
+figBA1.thbox.p3 <- paste(FIGDIR, 'fig1_theta1boxplot_lim45_right.pdf', sep = '')
+pdf(figBA1.thbox.p1, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+boxplot(th1.eb ~ nc, data = res01, boxwex = 0.5, ylab = '', xlab = '',
+  ylim = c(-45, 45), outline = FALSE); abline(h = 0, lty = 3)#; grid()
+dev.off(); cat('Printed figure:', figBA1.thbox.p1, '\n')
+pdf(figBA1.thbox.p2, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+boxplot(th1.eb ~ nc, data = res02, boxwex = 0.5,
+  ylim = c(-45, 45), outline = FALSE); abline(h = 0, lty = 3)#; grid()
+dev.off(); cat('Printed figure:', figBA1.thbox.p2, '\n')
+pdf(figBA1.thbox.p3, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+boxplot(th1.eb ~ nc, data = res03, boxwex = 0.5,
+  ylim = c(-45, 45), outline = FALSE); abline(h = 0, lty = 3)#; grid()
+dev.off(); cat('Printed figure:', figBA1.thbox.p3, '\n')
+
+# Figure: Proportion of confounders detected in Fig. 1 (est. variance)
+figBA1.pconf.p1 <- paste(FIGDIR, 'fig1_prop_confounders_left.pdf', sep = '')
+figBA1.pconf.p2 <- paste(FIGDIR, 'fig1_prop_confounders_mid.pdf', sep = '')
+figBA1.pconf.p3 <- paste(FIGDIR, 'fig1_prop_confounders_right.pdf', sep = '')
+#par(mfrow = c(1, 3), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+pdf(figBA1.pconf.p1, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res01, display = 'prop_conf', alpha = 1,
+  add.legend = TRUE, legpos = 'bottomleft')
+dev.off(); cat('Printed figure:', figBA1.pconf.p1, '\n')
+pdf(figBA1.pconf.p2, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res02, display = 'prop_conf', alpha = 1/3,
+  add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.pconf.p2, '\n')
+pdf(figBA1.pconf.p3, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res03, display = 'prop_conf', alpha = 0,
+  add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.pconf.p3, '\n')
+
+# Figure: Proportion of instruments detected in Fig. 1 (est. variance)
+figBA1.pinst.p1 <- paste(FIGDIR, 'fig1_prop_instruments_left.pdf', sep = '')
+figBA1.pinst.p2 <- paste(FIGDIR, 'fig1_prop_instruments_mid.pdf', sep = '')
+figBA1.pinst.p3 <- paste(FIGDIR, 'fig1_prop_instruments_right.pdf', sep = '')
+#par(mfrow = c(1, 3), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+pdf(figBA1.pinst.p1, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res01, display = 'prop_instr', alpha = 1,
+  add.legend = TRUE, legpos = c(1, 0.85))
+dev.off(); cat('Printed figure:', figBA1.pinst.p1, '\n')
+pdf(figBA1.pinst.p2, height = 4, width = 3) # MIDDLE PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res02, display = 'prop_instr', alpha = 1/3,
+  add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.pinst.p2, '\n')
+pdf(figBA1.pinst.p3, height = 4, width = 3) # RIGHT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.prop.var.mse(res03, display = 'prop_instr', alpha = 0,
+  add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.pinst.p3, '\n')
+
+# Figure: BAC/ACPME variants
+figBA1.bacpme.p1 <- paste(FIGDIR, 'fig1_bacpme_variations_left.pdf', sep = '')
+figBA1.bacpme.p2 <- paste(FIGDIR, 'fig1_bacpme_variations_mid.pdf', sep = '')
+figBA1.bacpme.p3 <- paste(FIGDIR, 'fig1_bacpme_variations_right.pdf', sep = '')
+pdf(figBA1.bacpme.p1, height = 4, width = 3) # LEFT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.bac.acpme.variants(res01, alpha = 1, ylims = c(0, 3.5),
+  var.bac = FALSE, add.legend = TRUE, legpos = 'topright')
+dev.off(); cat('Printed figure:', figBA1.bacpme.p1, '\n')
+pdf(figBA1.bacpme.p2, height = 4, width = 3) # MIDDLE PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.bac.acpme.variants(res02, alpha = 1/3, ylims = c(0, 3.5),
+  var.bac = FALSE, add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.bacpme.p2, '\n')
+pdf(figBA1.bacpme.p3, height = 4, width = 3) # RIGHT PANEL
+par(mfrow = c(1, 1), mar = c(2, 2, 0.5, 0.5), bg = 'white')
+plot.bac.acpme.variants(res03, alpha = 0, ylims = c(0, 3.5),
+  var.bac = FALSE, add.legend = FALSE)
+dev.off(); cat('Printed figure:', figBA1.bacpme.p3, '\n')
+
 # Erase file traces
 rm(pcr.here)
 rm(list = ls()[grep('fig', ls())])
